@@ -3,627 +3,1331 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>SLA // Startup Lifecycle & Architecture</title>
+    <title>HOW CODE GETS BUILT: The Startup Simulator</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Inter:wght@300;400;500;600;700&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700&family=Inter:wght@400;500;600;700&display=swap');
         body { 
             font-family: 'Inter', sans-serif;
             padding-top: env(safe-area-inset-top);
             padding-bottom: env(safe-area-inset-bottom);
-            padding-left: env(safe-area-inset-left);
-            padding-right: env(safe-area-inset-right);
         }
         .font-mono { font-family: 'JetBrains Mono', monospace; }
-        ::-webkit-scrollbar { width: 5px; height: 5px; }
-        ::-webkit-scrollbar-track { background: #020617; }
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: #020617; border-radius: 4px; }
         ::-webkit-scrollbar-thumb { background: #1e293b; border-radius: 4px; }
         ::-webkit-scrollbar-thumb:hover { background: #334155; }
-        .touch-target { min-height: 40px; }
-        .tour-highlight {
-            position: relative;
-            z-index: 60 !important;
-            box-shadow: 0 0 0 4px rgba(6, 182, 212, 0.9), 0 0 25px rgba(6, 182, 212, 0.5) !important;
-            border-color: rgb(6, 182, 212) !important;
-            transition: all 0.3s ease-in-out;
+        .touch-target { min-height: 44px; }
+        .card-tile {
+            transition: transform 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease;
         }
+        .card-tile:hover {
+            transform: translateY(-2px);
+        }
+        /* Custom radio button styling for pickers */
+        input[type="radio"] { accent-color: #06b6d4; transform: scale(1.2); }
     </style>
 </head>
-<body class="bg-slate-950 text-slate-100 min-h-[100dvh] flex flex-col selection:bg-cyan-500 selection:text-slate-950 antialiased overflow-x-hidden relative">
-
-    <!-- ========================================================= -->
-    <!-- BRANDED SPLASH SCREEN MODAL -->
-    <!-- ========================================================= -->
-    <div id="splash-screen" class="fixed inset-0 z-50 bg-slate-950/95 backdrop-blur-md flex items-center justify-center p-4">
-        <div class="max-w-2xl w-full bg-slate-900 border border-slate-800 rounded-3xl p-6 sm:p-10 shadow-2xl relative overflow-hidden font-mono">
-            <div class="absolute top-0 left-0 h-1.5 w-full bg-gradient-to-r from-cyan-500 via-blue-600 to-purple-600"></div>
-            
-            <!-- Brand Badge -->
-            <div class="flex items-center space-x-3 mb-4">
-                <div class="h-3 w-3 rounded-full bg-cyan-400 animate-pulse"></div>
-                <span class="text-xs font-bold text-cyan-400 tracking-widest uppercase">System Protocol // v2.5.0</span>
-            </div>
-
-            <!-- Title & Pitch -->
-            <h1 class="text-2xl sm:text-4xl font-bold tracking-tight text-white mb-2 font-mono">
-                SLA: <span class="text-cyan-400">Startup Lifecycle & Architecture</span>
-            </h1>
-            <p class="text-xs sm:text-sm text-slate-400 mb-6 font-sans leading-relaxed">
-                A strategic resource-allocation engine for software systems. Commit raw code modules to repos, extract into memory cache, compile unified deployment releases, and let your automated CI/CD test suites harden builds to deliver enterprise client SLAs.
-            </p>
-
-            <!-- Technical Pipeline Architecture Matrix -->
-            <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 text-center text-[10px] mb-8 font-mono">
-                <div class="bg-slate-950 p-2.5 rounded-xl border border-slate-800">
-                    <span class="text-slate-500 block">Source Code</span>
-                    <strong class="text-emerald-400">Git Repos</strong>
-                </div>
-                <div class="bg-slate-950 p-2.5 rounded-xl border border-slate-800">
-                    <span class="text-slate-500 block">Extraction</span>
-                    <strong class="text-cyan-400">Memory Cache</strong>
-                </div>
-                <div class="bg-slate-950 p-2.5 rounded-xl border border-slate-800">
-                    <span class="text-slate-500 block">CI/CD Hardening</span>
-                    <strong class="text-purple-400">Cluster Builds</strong>
-                </div>
-                <div class="bg-slate-950 p-2.5 rounded-xl border border-slate-800">
-                    <span class="text-slate-500 block">Revenue</span>
-                    <strong class="text-amber-400">Client SLAs</strong>
-                </div>
-            </div>
-
-            <!-- Action Buttons -->
-            <div class="flex flex-col sm:flex-row gap-3">
-                <button onclick="startGuidedTour()" class="flex-1 bg-cyan-500 hover:bg-cyan-400 text-slate-950 font-bold text-xs sm:text-sm py-3 px-6 rounded-xl transition shadow-lg shadow-cyan-500/25 flex items-center justify-center space-x-2 touch-target">
-                    <span>🧭 Start Guided Tour</span>
-                </button>
-                <button onclick="dismissSplash()" class="flex-1 bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 font-bold text-xs sm:text-sm py-3 px-6 rounded-xl transition flex items-center justify-center space-x-2 touch-target">
-                    <span>🚀 Launch Direct Sprint</span>
-                </button>
-            </div>
-            
-            <div class="mt-4 text-center">
-                <span class="text-[10px] text-slate-500">Target: Reach 20 ARR (Annual Recurring Revenue) to trigger market dominance.</span>
-            </div>
-        </div>
-    </div>
-
-    <!-- ========================================================= -->
-    <!-- GUIDED TOUR OVERLAY & CALLOUT -->
-    <!-- ========================================================= -->
-    <div id="tour-overlay" class="fixed inset-0 z-50 bg-slate-950/70 backdrop-blur-[2px] hidden transition-opacity"></div>
-    <div id="tour-box" class="fixed z-70 bottom-4 sm:bottom-8 left-1/2 -translate-x-1/2 max-w-lg w-[92%] bg-slate-900 border border-cyan-500/80 rounded-2xl p-5 shadow-2xl font-mono hidden space-y-3 text-xs">
-        <div class="flex justify-between items-center border-b border-slate-800 pb-2">
-            <div class="flex items-center space-x-2">
-                <span class="h-2 w-2 rounded-full bg-cyan-400 animate-ping"></span>
-                <span id="tour-step-counter" class="text-cyan-400 font-bold tracking-wider">STEP 1 OF 5</span>
-            </div>
-            <button onclick="exitTour()" class="text-slate-400 hover:text-slate-200 text-xs px-2 py-0.5 rounded border border-slate-800">Skip Tour ✕</button>
-        </div>
-        <div>
-            <h3 id="tour-title" class="text-sm font-bold text-white mb-1">Title</h3>
-            <p id="tour-body" class="text-slate-300 font-sans text-xs leading-relaxed">Description text goes here.</p>
-        </div>
-        <div class="flex justify-between items-center pt-2 border-t border-slate-800">
-            <button id="tour-prev-btn" onclick="prevTourStep()" class="bg-slate-800 hover:bg-slate-700 text-slate-300 px-3 py-1.5 rounded-lg border border-slate-700 disabled:opacity-30 disabled:cursor-not-allowed">Previous</button>
-            <button id="tour-next-btn" onclick="nextTourStep()" class="bg-cyan-500 hover:bg-cyan-400 text-slate-950 font-bold px-4 py-1.5 rounded-lg transition shadow-md shadow-cyan-500/20">Next ➔</button>
-        </div>
-    </div>
+<body class="bg-slate-950 text-slate-100 min-h-[100dvh] flex flex-col font-sans selection:bg-cyan-500 selection:text-slate-950 antialiased overflow-x-hidden">
 
     <!-- TOP HEADER -->
-    <header class="bg-slate-900/90 border-b border-slate-800 backdrop-blur sticky top-0 z-40 px-3 sm:px-6 py-2.5 sm:py-3 flex flex-wrap justify-between items-center gap-2 shadow-lg">
-        <div class="flex items-center space-x-2 sm:space-x-3">
-            <div class="h-2.5 w-2.5 sm:h-3 sm:w-3 rounded-full bg-cyan-400 animate-pulse"></div>
-            <h1 class="font-mono font-bold text-xs sm:text-base tracking-wider text-cyan-400">
-                SLA <span class="hidden sm:inline text-xs font-normal text-slate-400">// Enterprise Architecture Engine</span>
-            </h1>
+    <header class="bg-slate-900 border-b border-slate-800 px-4 py-3 flex justify-between items-center z-20 shadow-md">
+        <div class="flex items-center space-x-3">
+            <div class="h-3 w-3 rounded-full bg-cyan-400 animate-pulse"></div>
+            <div>
+                <h1 class="font-bold text-sm sm:text-base tracking-wide text-cyan-400">HOW CODE GETS BUILT</h1>
+                <p class="text-[10px] sm:text-xs text-slate-400 font-mono hidden sm:block">A practical business & architecture simulator</p>
+            </div>
         </div>
-        
-        <div class="flex items-center space-x-2 sm:space-x-3 text-[10px] sm:text-xs font-mono">
-            <button onclick="openHelpTour()" class="bg-cyan-950 text-cyan-300 hover:bg-cyan-900 border border-cyan-800 px-2 sm:px-3 py-1 rounded transition font-bold touch-target">🧭 Help / Tour</button>
-            <div class="bg-slate-950 px-2 sm:px-3 py-1 rounded border border-slate-800">
-                YR: <span id="hdr-year" class="text-cyan-400 font-bold">1</span>/7
-            </div>
-            <div class="bg-slate-950 px-2 sm:px-3 py-1 rounded border border-slate-800">
-                <span id="hdr-season" class="text-amber-400 font-bold">SPRING</span>
-            </div>
-            <button onclick="auditShuffleDistribution()" class="bg-emerald-950 text-emerald-300 hover:bg-emerald-900 border border-emerald-800 px-2 sm:px-3 py-1 rounded transition font-bold touch-target">🎲 Audit</button>
-            <button onclick="runMonteCarlo100()" class="bg-purple-950 text-purple-300 hover:bg-purple-900 border border-purple-800 px-2 sm:px-3 py-1 rounded transition font-bold touch-target">⚡ 100 Sims</button>
-            <button onclick="initGame()" class="bg-slate-800 hover:bg-slate-700 text-slate-300 px-2 sm:px-3 py-1 rounded border border-slate-700 transition touch-target">Reboot</button>
+        <div class="flex items-center space-x-2 sm:space-x-4 text-xs font-mono">
+            <button onclick="openExplainModal()" class="text-cyan-300 hover:text-cyan-100 px-2 py-1 transition underline underline-offset-2">📖 View Concepts Guide</button>
+            <div class="bg-slate-950 px-3 py-1.5 rounded border border-slate-800 hidden sm:block">YEAR: <span id="ui-year" class="text-cyan-400 font-bold">1</span>/7</div>
+            <div class="bg-slate-950 px-3 py-1.5 rounded border border-slate-800 hidden sm:block">PHASE: <span id="ui-phase" class="text-amber-400 font-bold">SETUP</span></div>
+            <button onclick="bootGame()" class="bg-slate-800 hover:bg-slate-700 text-slate-300 px-3 py-1.5 rounded border border-slate-700 transition">Restart</button>
         </div>
     </header>
 
-    <!-- MOBILE TABS -->
-    <div class="md:hidden flex border-b border-slate-800 bg-slate-900 text-xs font-mono">
-        <button onclick="setMobileTab('board')" id="tab-btn-board" class="flex-1 py-2 text-center text-cyan-400 border-b-2 border-cyan-400 font-bold">Action Board</button>
-        <button onclick="setMobileTab('status')" id="tab-btn-status" class="flex-1 py-2 text-center text-slate-400 border-b-2 border-transparent">Status & AI</button>
-        <button onclick="setMobileTab('hand')" id="tab-btn-hand" class="flex-1 py-2 text-center text-slate-400 border-b-2 border-transparent">Hand (<span id="tab-hand-count">0</span>)</button>
+    <!-- LIVE INSTRUCTION BANNER -->
+    <div id="turn-banner" class="bg-slate-900/90 border-b border-slate-800 px-4 py-2.5 text-xs sm:text-sm font-mono flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 shadow-sm">
+        <div class="flex items-center space-x-2">
+            <span id="turn-indicator-dot" class="h-2.5 w-2.5 rounded-full bg-cyan-400"></span>
+            <span id="turn-banner-text" class="text-slate-200">Welcome! Draft your founding team below to launch your venture.</span>
+        </div>
+        <div id="turn-banner-actions" class="flex gap-2 w-full sm:w-auto"></div>
     </div>
 
-    <!-- MAIN DASHBOARD -->
-    <main class="flex-1 max-w-[1920px] w-full mx-auto p-3 sm:p-5 grid grid-cols-1 md:grid-cols-12 gap-3 sm:gap-5">
-        
-        <!-- COLUMN 1: STATUS, DECKS & LOGS -->
-        <div id="section-status" class="md:col-span-4 lg:col-span-3 space-y-3 sm:space-y-4 font-mono hidden md:block">
-            <!-- Player Board -->
-            <div id="tour-target-player" class="bg-slate-900/90 border border-slate-800 rounded-xl sm:rounded-2xl p-3 sm:p-4 shadow-xl relative overflow-hidden">
-                <div class="absolute top-0 left-0 h-1 w-full bg-gradient-to-r from-cyan-500 to-emerald-500"></div>
-                <div class="flex justify-between items-center mb-2 sm:mb-3">
-                    <span class="font-bold text-xs sm:text-sm text-slate-200">YOUR STARTUP</span>
-                    <span class="text-[10px] bg-cyan-950 border border-cyan-800 text-cyan-300 px-1.5 py-0.5 rounded">Human Co-Founder</span>
+    <!-- MAIN DESK -->
+    <main class="flex-1 max-w-7xl w-full mx-auto p-3 sm:p-5 grid grid-cols-1 lg:grid-cols-12 gap-4 sm:gap-5">
+
+        <!-- LEFT PANEL: STARTUP VITALS (3 COLS) -->
+        <div class="lg:col-span-3 space-y-4 font-mono">
+            <!-- Human Mat -->
+            <div class="bg-slate-900/90 border border-slate-800 rounded-xl p-4 shadow-xl relative overflow-hidden">
+                <div class="absolute top-0 left-0 h-1.5 w-full bg-cyan-500"></div>
+                <div class="flex justify-between items-center mb-3">
+                    <span class="font-bold text-sm text-slate-200">YOUR STARTUP</span>
+                    <span id="p-order-badge" class="text-[10px] bg-slate-950 px-2 py-1 rounded border border-slate-800 text-slate-400">Schedule: -</span>
                 </div>
-                <div class="grid grid-cols-3 gap-1.5 sm:gap-2 text-center mb-2 sm:mb-3">
-                    <div class="bg-slate-950 p-2 rounded-lg border border-slate-800">
-                        <div class="text-[9px] sm:text-[10px] text-slate-400">ARR (VP)</div>
-                        <div id="p-arr" class="text-base sm:text-lg font-bold text-cyan-400">0</div>
+
+                <!-- Metrics Grid -->
+                <div class="grid grid-cols-3 gap-2 text-center mb-4">
+                    <div class="bg-slate-950 p-2 rounded-lg border border-slate-800" title="Annual Recurring Revenue: Points earned by delivering live software">
+                        <div class="text-[9px] text-slate-400 mb-1">ANNUAL REV</div>
+                        <div id="p-arr" class="text-xl font-bold text-cyan-400">0</div>
+                        <div class="text-[9px] text-slate-500 mt-1">Goal: 20</div>
                     </div>
-                    <div class="bg-slate-950 p-2 rounded-lg border border-slate-800">
-                        <div class="text-[9px] sm:text-[10px] text-slate-400">CAPITAL</div>
-                        <div id="p-cap" class="text-base sm:text-lg font-bold text-emerald-400">$4</div>
+                    <div class="bg-slate-950 p-2 rounded-lg border border-slate-800" title="Cash available for tools and upgrades">
+                        <div class="text-[9px] text-slate-400 mb-1">BANK CASH</div>
+                        <div id="p-cap" class="text-xl font-bold text-emerald-400">$0</div>
+                        <div class="text-[9px] text-slate-500 mt-1">Funds</div>
                     </div>
-                    <div class="bg-slate-950 p-2 rounded-lg border border-slate-800">
-                        <div class="text-[9px] sm:text-[10px] text-slate-400">RESIDUAL</div>
-                        <div id="p-res" class="text-base sm:text-lg font-bold text-amber-400">$0</div>
+                    <div class="bg-slate-950 p-2 rounded-lg border border-slate-800" title="Automatic annual subscription income from fulfilled clients">
+                        <div class="text-[9px] text-slate-400 mb-1">CONTRACTS</div>
+                        <div id="p-res" class="text-xl font-bold text-amber-400">$0</div>
+                        <div class="text-[9px] text-slate-500 mt-1">Auto / yr</div>
                     </div>
                 </div>
-                <!-- Engineers Pool -->
-                <div class="bg-slate-950 p-2 sm:p-2.5 rounded-lg border border-slate-800 text-xs space-y-1 sm:space-y-2">
-                    <div class="text-slate-400 text-[10px] flex justify-between">
-                        <span>SPRINT WORKFORCE (3 TOTAL)</span>
-                        <span id="p-workers-count">3 Available</span>
+
+                <!-- Staff Workforce -->
+                <div class="space-y-2 text-xs">
+                    <div class="text-slate-400 text-[11px] flex justify-between border-b border-slate-800 pb-1">
+                        <span>AVAILABLE STAFF</span>
+                        <span id="p-workers-count">0</span>
                     </div>
-                    <div id="p-workers-pool" class="flex flex-wrap gap-1.5"></div>
+                    <div id="p-workers-list" class="flex flex-wrap gap-2"></div>
+                    <p class="text-[10px] text-slate-500 pt-1 leading-relaxed">
+                        💡 <strong>Lead Architects</strong> can complete a task even if the competitor has already taken the slot!
+                    </p>
+                </div>
+
+                <!-- Structural Assets -->
+                <div class="mt-4 pt-3 border-t border-slate-800 text-[11px]">
+                    <span class="text-slate-400 block mb-2">OWNED SOFTWARE ASSETS:</span>
+                    <div id="p-structures-list" class="flex flex-wrap gap-1.5 text-slate-500 italic">None yet</div>
                 </div>
             </div>
 
-            <!-- Rival AI Metrics -->
-            <div class="bg-slate-900/90 border border-slate-800 rounded-xl sm:rounded-2xl p-3 sm:p-4 shadow-xl font-mono text-xs space-y-2 sm:space-y-3">
-                <div class="flex justify-between items-center border-b border-slate-800 pb-1.5">
-                    <span class="font-bold text-purple-400 text-xs">RIVAL AI SYNDICATE</span>
-                    <span id="ai-arr-badge" class="bg-purple-950 border border-purple-800 text-purple-300 text-[9px] sm:text-[10px] px-1.5 py-0.5 rounded">0 ARR</span>
+            <!-- Rival Startup -->
+            <div class="bg-slate-900/90 border border-slate-800 rounded-xl p-4 shadow-xl space-y-3 text-xs">
+                <div class="flex justify-between items-center border-b border-slate-800 pb-2">
+                    <span class="font-bold text-purple-400 text-sm">RIVAL COMPETITOR</span>
+                    <span id="ai-order-badge" class="text-[10px] bg-slate-950 px-2 py-1 rounded border border-slate-800 text-slate-400">Schedule: -</span>
                 </div>
-                <div class="flex justify-between text-slate-400 text-[10px] sm:text-[11px]">
-                    <span>Capital: <span id="ai-cap" class="text-emerald-400">$4</span></span>
-                    <span>Residuals: <span id="ai-res" class="text-amber-400">$0</span></span>
-                    <span>Devs: <span id="ai-workers-count" class="text-purple-400">3/3</span></span>
+                <div class="flex justify-between text-slate-400 text-[11px]">
+                    <span>Revenue: <strong id="ai-arr" class="text-purple-400 text-sm ml-1">0 ARR</strong></span>
+                    <span>Cash: <strong id="ai-cap" class="text-emerald-400 text-sm ml-1">$0</strong></span>
+                    <span>Staff: <strong id="ai-workers" class="text-slate-200 text-sm ml-1">0</strong></span>
                 </div>
-                <div id="ai-last-action" class="bg-slate-950 p-2 rounded border border-slate-800 text-[10px] text-slate-400 italic">Rival awaiting sprint cycle...</div>
+                <p id="ai-log" class="text-[11px] text-slate-400 italic bg-slate-950 p-2 rounded border border-slate-800 mt-2">Competitor ready...</p>
             </div>
 
-            <!-- Central Draw & Discard Status (The 4 Decks) -->
-            <div id="tour-target-decks" class="bg-slate-900/90 border border-slate-800 rounded-xl sm:rounded-2xl p-3 sm:p-4 shadow-xl space-y-2 font-mono text-xs">
-                <div class="text-slate-400 text-[10px] font-bold border-b border-slate-800 pb-1 flex justify-between">
-                    <span>4 DECKS (DRAW / DISCARD)</span>
-                    <span class="text-emerald-400">Auto-Recycled</span>
-                </div>
-                <div class="grid grid-cols-2 gap-1.5 sm:gap-2 text-[10px] sm:text-[11px]">
-                    <div class="bg-slate-950 p-1.5 sm:p-2 rounded border border-emerald-900/60 flex justify-between items-center">
-                        <span class="text-emerald-400 truncate mr-1">Modules (Grn)</span>
-                        <span id="deck-cnt-mod" class="text-slate-300 font-bold">12/0</span>
-                    </div>
-                    <div class="bg-slate-950 p-1.5 sm:p-2 rounded border border-purple-900/60 flex justify-between items-center">
-                        <span class="text-purple-400 truncate mr-1">SLAs (Purp)</span>
-                        <span id="deck-cnt-sla" class="text-slate-300 font-bold">8/0</span>
-                    </div>
-                    <div class="bg-slate-950 p-1.5 sm:p-2 rounded border border-amber-900/60 flex justify-between items-center">
-                        <span class="text-amber-400 truncate mr-1">Advisors (Yel)</span>
-                        <span id="deck-cnt-adv" class="text-slate-300 font-bold">6/0</span>
-                    </div>
-                    <div class="bg-slate-950 p-1.5 sm:p-2 rounded border border-blue-900/60 flex justify-between items-center">
-                        <span class="text-blue-400 truncate mr-1">Principals (Blu)</span>
-                        <span id="deck-cnt-pri" class="text-slate-300 font-bold">6/0</span>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Terminal Execution Logs -->
-            <div class="bg-slate-900/90 border border-slate-800 rounded-xl sm:rounded-2xl p-3 shadow-xl flex flex-col h-36 sm:h-44 font-mono text-xs">
-                <div class="text-[10px] text-slate-400 font-bold border-b border-slate-800 pb-1 flex justify-between">
-                    <span>EVENT STREAM</span>
-                    <span class="text-cyan-400">ACTIVE</span>
-                </div>
-                <div id="log-box" class="flex-1 overflow-y-auto space-y-1 text-[10px] sm:text-[11px] pt-1.5 pr-1"></div>
+            <!-- Event Log -->
+            <div class="bg-slate-900/90 border border-slate-800 rounded-xl p-4 shadow-xl flex flex-col h-48 text-xs">
+                <span class="text-[11px] font-bold text-slate-400 border-b border-slate-800 pb-2 mb-2">LIVE ACTIVITY STREAM</span>
+                <div id="event-stream" class="flex-1 overflow-y-auto space-y-1.5 text-[11px] text-slate-300 pr-2"></div>
             </div>
         </div>
 
-        <!-- COLUMN 2: BOARD & ACTIONS -->
-        <div id="section-board" class="md:col-span-8 lg:col-span-6 space-y-3 sm:space-y-4">
-            <!-- Turn & Season Control Bar -->
-            <div class="bg-slate-900 border border-slate-800 rounded-xl sm:rounded-2xl p-3 sm:p-4 shadow-xl flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2">
-                <div>
-                    <h2 id="phase-banner-title" class="font-mono font-bold text-xs sm:text-sm text-slate-100">Summer Operations</h2>
-                    <p id="phase-banner-sub" class="text-[10px] sm:text-xs text-slate-400">Commit modules, hire talent, or raise angel capital.</p>
+        <!-- CENTER PANEL: WORKBENCH & SLOTS (6 COLS) -->
+        <div class="lg:col-span-6 space-y-4">
+            
+            <!-- SPRING TRACK -->
+            <div class="bg-slate-900/90 border border-slate-800 rounded-xl p-4 shadow-xl font-mono">
+                <div class="flex flex-col sm:flex-row justify-between sm:items-center border-b border-slate-800 pb-2 mb-3 gap-1">
+                    <span class="text-sm font-bold text-amber-400">SPRING: ANNUAL DEPLOYMENT SCHEDULE</span>
+                    <span class="text-[10px] sm:text-[11px] text-slate-400">Pick early to move first, or late for bigger bonuses</span>
                 </div>
-                <button id="btn-advance-season" onclick="advanceSeason()" class="w-full sm:w-auto bg-cyan-500 hover:bg-cyan-400 text-slate-950 font-mono font-bold text-[11px] sm:text-xs px-4 py-2 sm:py-2.5 rounded-lg sm:rounded-xl transition shadow-lg shadow-cyan-500/20 touch-target">
-                    Pass / Advance Season ➔
-                </button>
-            </div>
-
-            <!-- Central Slots Grid -->
-            <div id="tour-target-slots" class="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-3">
-                <!-- Summer Slots -->
-                <div class="bg-slate-900/80 border border-slate-800 rounded-xl sm:rounded-2xl p-3 space-y-2">
-                    <div class="flex justify-between items-center border-b border-slate-800 pb-1 font-mono">
-                        <span class="text-[11px] sm:text-xs font-bold text-amber-400">☀️ SUMMER SLOTS</span>
-                        <span class="text-[9px] sm:text-[10px] text-slate-500">Architecture & Capital</span>
-                    </div>
-                    
-                    <div id="slot-commit" class="bg-slate-950 border border-slate-800 p-2 sm:p-2.5 rounded-lg flex justify-between items-center text-xs font-mono">
-                        <div class="mr-2">
-                            <div class="text-slate-200 font-bold text-[11px] sm:text-xs">Commit Module</div>
-                            <div class="text-[9px] sm:text-[10px] text-slate-400">Deploy Green Card to Repo</div>
-                            <div id="occ-commit" class="text-[9px] sm:text-[10px] text-cyan-400">Vacant</div>
-                        </div>
-                        <button onclick="takeAction('COMMIT')" class="bg-slate-800 hover:bg-slate-700 text-slate-200 px-3 py-1.5 rounded border border-slate-700 text-[11px] transition touch-target">Place</button>
-                    </div>
-
-                    <div id="slot-fund" class="bg-slate-950 border border-slate-800 p-2 sm:p-2.5 rounded-lg flex justify-between items-center text-xs font-mono">
-                        <div class="mr-2">
-                            <div class="text-slate-200 font-bold text-[11px] sm:text-xs">Angel Round</div>
-                            <div class="text-[9px] sm:text-[10px] text-slate-400">Gain +$3 Capital</div>
-                            <div id="occ-fund" class="text-[9px] sm:text-[10px] text-cyan-400">Vacant</div>
-                        </div>
-                        <button onclick="takeAction('FUND')" class="bg-slate-800 hover:bg-slate-700 text-slate-200 px-3 py-1.5 rounded border border-slate-700 text-[11px] transition touch-target">Place</button>
-                    </div>
-
-                    <div id="slot-draw-summer" class="bg-slate-950 border border-slate-800 p-2 sm:p-2.5 rounded-lg flex justify-between items-center text-xs font-mono">
-                        <div class="mr-2">
-                            <div class="text-slate-200 font-bold text-[11px] sm:text-xs">Scout Tech / Advisor</div>
-                            <div class="text-[9px] sm:text-[10px] text-slate-400">Draw 1 Module & 1 Advisor</div>
-                            <div id="occ-draw-summer" class="text-[9px] sm:text-[10px] text-cyan-400">Vacant</div>
-                        </div>
-                        <button onclick="takeAction('DRAW_SUMMER')" class="bg-slate-800 hover:bg-slate-700 text-slate-200 px-3 py-1.5 rounded border border-slate-700 text-[11px] transition touch-target">Place</button>
-                    </div>
-                </div>
-
-                <!-- Winter Slots -->
-                <div class="bg-slate-900/80 border border-slate-800 rounded-xl sm:rounded-2xl p-3 space-y-2">
-                    <div class="flex justify-between items-center border-b border-slate-800 pb-1 font-mono">
-                        <span class="text-[11px] sm:text-xs font-bold text-blue-400">❄️ WINTER SLOTS</span>
-                        <span class="text-[9px] sm:text-[10px] text-slate-500">Release Compilation & SLAs</span>
-                    </div>
-
-                    <div id="slot-extract" class="bg-slate-950 border border-slate-800 p-2 sm:p-2.5 rounded-lg flex justify-between items-center text-xs font-mono">
-                        <div class="mr-2">
-                            <div class="text-slate-200 font-bold text-[11px] sm:text-xs">Extract Code</div>
-                            <div class="text-[9px] sm:text-[10px] text-slate-400">Sweep repo modules to cache</div>
-                            <div id="occ-extract" class="text-[9px] sm:text-[10px] text-cyan-400">Vacant</div>
-                        </div>
-                        <button onclick="takeAction('EXTRACT')" class="bg-slate-800 hover:bg-slate-700 text-slate-200 px-3 py-1.5 rounded border border-slate-700 text-[11px] transition touch-target">Place</button>
-                    </div>
-
-                    <div id="slot-compile" class="bg-slate-950 border border-slate-800 p-2 sm:p-2.5 rounded-lg flex justify-between items-center text-xs font-mono">
-                        <div class="mr-2">
-                            <div class="text-slate-200 font-bold text-[11px] sm:text-xs">Compile Release</div>
-                            <div class="text-[9px] sm:text-[10px] text-slate-400">Buffer to Deployed Build</div>
-                            <div id="occ-compile" class="text-[9px] sm:text-[10px] text-cyan-400">Vacant</div>
-                        </div>
-                        <button onclick="takeAction('COMPILE')" class="bg-slate-800 hover:bg-slate-700 text-slate-200 px-3 py-1.5 rounded border border-slate-700 text-[11px] transition touch-target">Place</button>
-                    </div>
-
-                    <div id="slot-sla" class="bg-slate-950 border border-slate-800 p-2 sm:p-2.5 rounded-lg flex justify-between items-center text-xs font-mono">
-                        <div class="mr-2">
-                            <div class="text-slate-200 font-bold text-[11px] sm:text-xs">Deliver Client SLA</div>
-                            <div class="text-[9px] sm:text-[10px] text-slate-400">Fulfill contract for ARR/Residual</div>
-                            <div id="occ-sla" class="text-[9px] sm:text-[10px] text-cyan-400">Vacant</div>
-                        </div>
-                        <button onclick="takeAction('FULFILL')" class="bg-slate-800 hover:bg-slate-700 text-slate-200 px-3 py-1.5 rounded border border-slate-700 text-[11px] transition touch-target">Place</button>
-                    </div>
+                <div id="spring-track" class="grid grid-cols-7 gap-1.5 text-[10px] text-center">
+                    <!-- Injected via JS -->
                 </div>
             </div>
 
-            <!-- Pipelines & Repos -->
-            <div id="tour-target-pipelines" class="bg-slate-900/80 border border-slate-800 rounded-xl sm:rounded-2xl p-3 sm:p-4 shadow-xl space-y-2.5 font-mono text-xs">
-                <div class="flex justify-between items-center border-b border-slate-800 pb-1.5">
-                    <span class="font-bold text-slate-200 text-xs">INFRASTRUCTURE STATUS</span>
-                    <button onclick="upgradeClusterInfra()" class="bg-cyan-950 text-cyan-300 hover:bg-cyan-900 border border-cyan-800 px-2 py-1 rounded text-[10px] touch-target">Upgrade Cluster ($4)</button>
+            <!-- SEASONAL ACTION SLOTS -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 font-mono text-xs">
+                
+                <!-- SUMMER ACTIONS -->
+                <div class="bg-slate-900/90 border border-slate-800 rounded-xl p-4 space-y-3">
+                    <div class="flex justify-between items-center border-b border-slate-800 pb-2">
+                        <span class="font-bold text-amber-400 text-sm">☀️ SUMMER: PLANNING</span>
+                        <span class="text-[10px] text-slate-400">Writing & Finance</span>
+                    </div>
+
+                    <!-- Commit Module Slot -->
+                    <div id="slot-commit" class="bg-slate-950 border border-slate-800 p-2.5 rounded-lg flex justify-between items-center">
+                        <div class="mr-3">
+                            <div class="text-slate-200 font-bold text-xs">1. Write Code into Folder</div>
+                            <div class="text-[10px] text-slate-400 mt-0.5">Commit a green code card into a project folder</div>
+                            <div id="occ-commit" class="text-[10px] text-cyan-400 mt-1 font-bold">Available</div>
+                        </div>
+                        <button onclick="handleCommitAction()" class="bg-slate-800 hover:bg-slate-700 text-slate-200 px-3 py-2 rounded text-xs border border-slate-700 touch-target transition">Assign</button>
+                    </div>
+
+                    <!-- Grant Slot -->
+                    <div id="slot-fund" class="bg-slate-950 border border-slate-800 p-2.5 rounded-lg flex justify-between items-center">
+                        <div class="mr-3">
+                            <div class="text-slate-200 font-bold text-xs">2. Seek Innovation Grant</div>
+                            <div class="text-[10px] text-slate-400 mt-0.5">Gain +$1 working capital from government fund</div>
+                            <div id="occ-fund" class="text-[10px] text-cyan-400 mt-1 font-bold">Available</div>
+                        </div>
+                        <button onclick="handleFundAction()" class="bg-slate-800 hover:bg-slate-700 text-slate-200 px-3 py-2 rounded text-xs border border-slate-700 touch-target transition">Assign</button>
+                    </div>
+
+                    <!-- Build Testing Tool Slot -->
+                    <div id="slot-build" class="bg-slate-950 border border-slate-800 p-2.5 rounded-lg flex justify-between items-center">
+                        <div class="mr-3">
+                            <div class="text-slate-200 font-bold text-xs">3. Set Up Automated Testing</div>
+                            <div class="text-[10px] text-slate-400 mt-0.5">Cost $2 (Automated Bug-Fixing Test Suite)</div>
+                            <div id="occ-build" class="text-[10px] text-cyan-400 mt-1 font-bold">Available</div>
+                        </div>
+                        <button onclick="handleBuildAction()" class="bg-slate-800 hover:bg-slate-700 text-slate-200 px-3 py-2 rounded text-xs border border-slate-700 touch-target transition">Assign</button>
+                    </div>
+
+                    <!-- Advisor Slot -->
+                    <div id="slot-advisor" class="bg-slate-950 border border-slate-800 p-2.5 rounded-lg flex justify-between items-center">
+                        <div class="mr-3">
+                            <div class="text-slate-200 font-bold text-xs">4. Meet Business Advisor</div>
+                            <div class="text-[10px] text-slate-400 mt-0.5">Consult with a yellow Business Advisor card</div>
+                            <div id="occ-advisor" class="text-[10px] text-cyan-400 mt-1 font-bold">Available</div>
+                        </div>
+                        <button onclick="handleAdvisorAction()" class="bg-slate-800 hover:bg-slate-700 text-slate-200 px-3 py-2 rounded text-xs border border-slate-700 touch-target transition">Assign</button>
+                    </div>
+                </div>
+
+                <!-- WINTER ACTIONS -->
+                <div class="bg-slate-900/90 border border-slate-800 rounded-xl p-4 space-y-3">
+                    <div class="flex justify-between items-center border-b border-slate-800 pb-2">
+                        <span class="font-bold text-blue-400 text-sm">❄️ WINTER: DELIVERY</span>
+                        <span class="text-[10px] text-slate-400">Production & Revenue</span>
+                    </div>
+
+                    <!-- Extract Code Slot -->
+                    <div id="slot-extract" class="bg-slate-950 border border-slate-800 p-2.5 rounded-lg flex justify-between items-center">
+                        <div class="mr-3">
+                            <div class="text-slate-200 font-bold text-xs">1. Extract Code for Testing</div>
+                            <div class="text-[10px] text-slate-400 mt-0.5">Pull code out of folders into testing memory</div>
+                            <div id="occ-extract" class="text-[10px] text-cyan-400 mt-1 font-bold">Available</div>
+                        </div>
+                        <button onclick="handleExtractAction()" class="bg-slate-800 hover:bg-slate-700 text-slate-200 px-3 py-2 rounded text-xs border border-slate-700 touch-target transition">Assign</button>
+                    </div>
+
+                    <!-- Compile Release Slot -->
+                    <div id="slot-compile" class="bg-slate-950 border border-slate-800 p-2.5 rounded-lg flex justify-between items-center">
+                        <div class="mr-3">
+                            <div class="text-slate-200 font-bold text-xs">2. Publish to Live Server</div>
+                            <div class="text-[10px] text-slate-400 mt-0.5">Turn memory code into an active live release</div>
+                            <div id="occ-compile" class="text-[10px] text-cyan-400 mt-1 font-bold">Available</div>
+                        </div>
+                        <button onclick="handleCompileAction()" class="bg-slate-800 hover:bg-slate-700 text-slate-200 px-3 py-2 rounded text-xs border border-slate-700 touch-target transition">Assign</button>
+                    </div>
+
+                    <!-- Deliver Contract Slot -->
+                    <div id="slot-sla" class="bg-slate-950 border border-slate-800 p-2.5 rounded-lg flex justify-between items-center">
+                        <div class="mr-3">
+                            <div class="text-slate-200 font-bold text-xs">3. Deliver Client Contract</div>
+                            <div class="text-[10px] text-slate-400 mt-0.5">Fulfill a purple contract card for ongoing revenue</div>
+                            <div id="occ-sla" class="text-[10px] text-cyan-400 mt-1 font-bold">Available</div>
+                        </div>
+                        <button onclick="handleFulfillAction()" class="bg-slate-800 hover:bg-slate-700 text-slate-200 px-3 py-2 rounded text-xs border border-slate-700 touch-target transition">Assign</button>
+                    </div>
+
+                    <!-- Senior Architect Slot -->
+                    <div id="slot-principal" class="bg-slate-950 border border-slate-800 p-2.5 rounded-lg flex justify-between items-center">
+                        <div class="mr-3">
+                            <div class="text-slate-200 font-bold text-xs">4. Consult Senior Architect</div>
+                            <div class="text-[10px] text-slate-400 mt-0.5">Deploy a blue Senior Architect card</div>
+                            <div id="occ-principal" class="text-[10px] text-cyan-400 mt-1 font-bold">Available</div>
+                        </div>
+                        <button onclick="handlePrincipalAction()" class="bg-slate-800 hover:bg-slate-700 text-slate-200 px-3 py-2 rounded text-xs border border-slate-700 touch-target transition">Assign</button>
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- CODE INFRASTRUCTURE -->
+            <div class="bg-slate-900/90 border border-slate-800 rounded-xl p-4 shadow-xl font-mono text-xs space-y-3">
+                <div class="flex flex-col sm:flex-row justify-between sm:items-center border-b border-slate-800 pb-2 gap-2">
+                    <div>
+                        <span class="font-bold text-slate-200 text-sm block">PRODUCTION WORKBENCH</span>
+                        <span class="text-[11px] text-slate-400 mt-0.5">Project Folders $\to$ Testing Memory $\to$ Live Servers</span>
+                    </div>
+                    <button onclick="upgradeInfraTier()" class="bg-cyan-950 text-cyan-300 hover:bg-cyan-900 border border-cyan-800 px-3 py-1.5 rounded text-[11px] transition touch-target">Upgrade Servers ($4)</button>
                 </div>
                 
-                <div class="grid grid-cols-1 sm:grid-cols-3 gap-2 sm:gap-3">
-                    <div class="bg-slate-950 p-2 rounded-lg border border-slate-800 space-y-1">
-                        <div class="text-slate-400 text-[9px] sm:text-[10px] font-bold">REPOSITORIES (3)</div>
-                        <div id="repos-view" class="space-y-1"></div>
-                    </div>
-                    <div class="bg-slate-950 p-2 rounded-lg border border-slate-800 space-y-1">
-                        <div class="text-slate-400 text-[9px] sm:text-[10px] font-bold">BUFFER CACHE</div>
-                        <div id="buffer-view" class="flex flex-wrap gap-1 min-h-[30px] items-center"></div>
-                    </div>
-                    <div class="bg-slate-950 p-2 rounded-lg border border-slate-800 space-y-1">
-                        <div class="text-slate-400 text-[9px] sm:text-[10px] font-bold flex justify-between">
-                            <span>DEPLOYED BUILDS</span>
-                            <span id="tier-cap-label" class="text-cyan-400 text-[9px]">Max T3</span>
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                    <!-- Git Folders -->
+                    <div class="bg-slate-950 p-2.5 rounded-lg border border-slate-800 space-y-1.5">
+                        <div class="text-slate-400 text-[11px] font-bold flex justify-between border-b border-slate-800/50 pb-1 mb-1.5">
+                            <span>PROJECT FOLDERS</span>
+                            <span class="text-[10px] text-slate-500">Step 1</span>
                         </div>
-                        <div id="pipelines-view" class="space-y-1"></div>
+                        <div id="repos-container" class="space-y-1.5"></div>
                     </div>
+                    
+                    <!-- Memory Buffer -->
+                    <div class="bg-slate-950 p-2.5 rounded-lg border border-slate-800 space-y-1.5">
+                        <div class="text-slate-400 text-[11px] font-bold flex justify-between border-b border-slate-800/50 pb-1 mb-1.5">
+                            <span>TESTING MEMORY</span>
+                            <span class="text-[10px] text-slate-500">Step 2</span>
+                        </div>
+                        <div id="buffer-container" class="flex flex-wrap gap-1.5 min-h-[40px] items-center"></div>
+                    </div>
+                    
+                    <!-- Live Server Builds -->
+                    <div class="bg-slate-950 p-2.5 rounded-lg border border-slate-800 space-y-1.5">
+                        <div class="text-slate-400 text-[11px] font-bold flex justify-between border-b border-slate-800/50 pb-1 mb-1.5">
+                            <span>LIVE SERVERS</span>
+                            <span id="tier-limit" class="text-cyan-400 text-[10px]">Max: Level 3</span>
+                        </div>
+                        <div id="builds-container" class="space-y-1.5"></div>
+                    </div>
+                </div>
+                <div class="bg-slate-950/50 p-2 rounded border border-slate-800 text-[11px] text-slate-400 leading-relaxed">
+                    ℹ️ <strong>The Stability Cycle:</strong> Because you set up Automated Testing during setup, any code running on the Live Servers becomes more stable automatically at the end of each year! A Level 1 build will upgrade to Level 2 without any extra work.
                 </div>
             </div>
+
         </div>
 
-        <!-- COLUMN 3: HAND OF CARDS -->
-        <div id="section-hand" class="md:col-span-12 lg:col-span-3 space-y-3 font-mono hidden md:block">
-            <div id="tour-target-hand" class="bg-slate-900/80 border border-slate-800 rounded-xl sm:rounded-2xl p-3 sm:p-4 shadow-xl space-y-2.5">
-                <div class="flex justify-between items-center border-b border-slate-800 pb-1.5 text-xs">
-                    <span class="font-bold text-slate-200">ACTIVE HAND</span>
-                    <span id="hand-count-badge" class="text-[10px] text-slate-400">0 Cards</span>
+        <!-- RIGHT PANEL: HAND OF CARDS (3 COLS) -->
+        <div class="lg:col-span-3 space-y-4 font-mono">
+            <div class="bg-slate-900/90 border border-slate-800 rounded-xl p-4 shadow-xl space-y-3">
+                <div class="flex justify-between items-center border-b border-slate-800 pb-2 text-sm">
+                    <span class="font-bold text-slate-200">CARDS IN HAND</span>
+                    <span id="hand-count" class="text-[11px] text-slate-400">0 Cards</span>
                 </div>
-                <div id="hand-cards-list" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-1 gap-2 max-h-[600px] overflow-y-auto pr-1"></div>
+                <p class="text-[11px] text-slate-400 italic">Click any card below to view details, requirements, and play actions.</p>
+                <div id="hand-container" class="space-y-2.5 max-h-[620px] overflow-y-auto pr-1"></div>
             </div>
         </div>
 
     </main>
 
-    <!-- SHUFFLE AUDIT MODAL -->
-    <div id="modal-audit" class="fixed inset-0 bg-slate-950/85 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
-        <div class="bg-slate-900 border border-slate-800 rounded-2xl max-w-xl w-full p-4 sm:p-5 font-mono shadow-2xl space-y-4">
-            <div class="flex justify-between items-center border-b border-slate-800 pb-2">
-                <h3 class="font-bold text-xs sm:text-sm text-emerald-400">🎲 10,000-DRAW SHUFFLE DISTRIBUTION AUDIT</h3>
-                <button onclick="document.getElementById('modal-audit').classList.add('hidden')" class="text-slate-400 hover:text-slate-200 p-1 touch-target">✕</button>
+    <!-- GENERAL INTERACTIVE MODAL (FOR SETUP, PICKERS & INSPECTION) -->
+    <div id="modal-dialog" class="fixed inset-0 z-50 bg-slate-950/90 backdrop-blur-sm hidden flex items-center justify-center p-3 sm:p-4">
+        <div class="bg-slate-900 border border-slate-800 rounded-2xl max-w-xl w-full p-4 sm:p-6 font-mono shadow-2xl space-y-4 max-h-[95vh] flex flex-col">
+            <div class="border-b border-slate-800 pb-3 flex-shrink-0">
+                <span class="text-[11px] text-cyan-400 font-bold uppercase tracking-wider block" id="modal-badge">MODAL</span>
+                <h3 class="text-lg font-bold text-white mt-1" id="modal-title">Title</h3>
             </div>
-            <div id="audit-results-view" class="text-xs space-y-2 text-slate-300">
-                Auditing uniform randomness and discard recycling across all 4 decks...
-            </div>
+            <div id="modal-body" class="text-sm text-slate-300 space-y-4 font-sans overflow-y-auto pr-2 flex-1"></div>
+            <div id="modal-actions" class="flex flex-wrap gap-3 justify-end pt-3 border-t border-slate-800 flex-shrink-0"></div>
         </div>
     </div>
 
-    <!-- MONTE CARLO MODAL -->
-    <div id="modal-sim" class="fixed inset-0 bg-slate-950/85 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
-        <div class="bg-slate-900 border border-slate-800 rounded-2xl max-w-xl w-full p-4 sm:p-5 font-mono shadow-2xl space-y-4">
-            <div class="flex justify-between items-center border-b border-slate-800 pb-2">
-                <h3 class="font-bold text-xs sm:text-sm text-purple-400">⚡ 100-GAME MONTE CARLO BALANCE ENGINE</h3>
-                <button onclick="document.getElementById('modal-sim').classList.add('hidden')" class="text-slate-400 hover:text-slate-200 p-1 touch-target">✕</button>
+    <!-- PLAIN ENGLISH EXPLANATION MODAL -->
+    <div id="modal-explain" class="fixed inset-0 z-50 bg-slate-950/90 backdrop-blur-sm hidden flex items-center justify-center p-3 sm:p-4">
+        <div class="bg-slate-900 border border-slate-800 rounded-2xl max-w-xl w-full p-4 sm:p-6 font-mono shadow-2xl space-y-4 max-h-[95vh] flex flex-col">
+            <div class="flex justify-between items-center border-b border-slate-800 pb-3 flex-shrink-0">
+                <h3 class="font-bold text-base text-cyan-400">REAL-WORLD CODING CONCEPTS</h3>
+                <button onclick="document.getElementById('modal-explain').classList.add('hidden')" class="text-slate-400 hover:text-slate-200 touch-target">✕ Close</button>
             </div>
-            <div id="sim-results-view" class="text-xs space-y-2 text-slate-300">
-                Executing 100 fast-turn simulated game cycles...
+            <div class="space-y-3 text-slate-300 font-sans leading-relaxed overflow-y-auto pr-2 text-xs sm:text-sm flex-1">
+                <div class="bg-slate-950 p-3 sm:p-4 rounded-lg border border-slate-800">
+                    <strong class="text-emerald-400 font-mono block text-sm mb-1">1. Writing Code Modules</strong>
+                    Software is written in modular blocks. A <em>Frontend</em> module is what people click (the screen), while a <em>Backend</em> module handles the calculations and databases behind the scenes.
+                </div>
+                <div class="bg-slate-950 p-3 sm:p-4 rounded-lg border border-slate-800">
+                    <strong class="text-cyan-400 font-mono block text-sm mb-1">2. Project Folders (Git Repositories)</strong>
+                    Programmers don't just keep code on desktop folders. They use version-controlled folders called "Repositories" (or Repos) so they can collaborate without deleting each other's work.
+                </div>
+                <div class="bg-slate-950 p-3 sm:p-4 rounded-lg border border-slate-800">
+                    <strong class="text-purple-400 font-mono block text-sm mb-1">3. Automated Hardening (Why Code "Ages")</strong>
+                    New software is fragile and full of bugs. Over time, automated software test suites run thousands of checks, fixing flaws. The longer software runs under testing on a server, the more reliable it becomes.
+                </div>
+                <div class="bg-slate-950 p-3 sm:p-4 rounded-lg border border-slate-800">
+                    <strong class="text-amber-400 font-mono block text-sm mb-1">4. Client Contracts (SLAs)</strong>
+                    Big organisations (like banks or supermarkets) will not buy raw code. They sign contracts called <em>Service Level Agreements</em> (SLAs) that promise 99.9% reliability in exchange for high recurring subscription revenue.
+                </div>
             </div>
         </div>
     </div>
 
     <!-- ENGINE JAVASCRIPT -->
     <script>
-        // ==========================================
-        // GUIDED TOUR ENGINE (PURE TECH THEME)
-        // ==========================================
-        const TOUR_STEPS = [
-            {
-                title: "1. The Dev Workforce & Resource Allocation",
-                body: "Your engineering team is shared across the entire annual sprint. You begin with 2 Standard Developers and 1 Principal Architect. If you place all 3 in Summer, you will have no engineers available for Winter deployment operations. Your Principal Architect acts as an executive override: they can enter an action slot even if the rival startup has already blocked it.",
-                targetId: "tour-target-player"
-            },
-            {
-                title: "2. Seasonal Action Slots (Summer vs Winter)",
-                body: "Summer slots handle early architecture: Committing code modules into Git repositories, raising Angel venture rounds ($), or scouting advisors. Winter slots focus on deployment pipelines: Extracting code into memory buffers, compiling deployable releases, and delivering enterprise client SLAs.",
-                targetId: "tour-target-slots"
-            },
-            {
-                title: "3. Repositories, Buffer & CI/CD Pipelines",
-                body: "This is your primary build sequence: Green Module cards are committed to your Repositories. During Winter, 'Extract Code' transfers repo modules into your in-memory Buffer cache. Next, 'Compile Release' packages that cached memory into active Deployment Pipelines.",
-                targetId: "tour-target-pipelines"
-            },
-            {
-                title: "4. Automated CI/CD Pipeline Hardening",
-                body: "At the conclusion of each Year sprint, automated CI/CD and benchmark suites execute across your infrastructure. Every build deployed in your cluster hardens by +1 Tier (Alpha Tier 1-3 -> Beta Tier 4-6 -> Enterprise Tier 7-9), allowing them to satisfy higher-paying client contracts. Upgrade your cluster infrastructure ($4) to expand maximum tier capacity.",
-                targetId: "tour-target-pipelines"
-            },
-            {
-                title: "5. The 4 Card Repositories & Client SLAs",
-                body: "You manage 4 distinct card types: Modules (Code components), Client SLAs (Enterprise deals), Advisors (Summer tacticians), and Principal Engineers (Winter specialists). When your deployed builds meet or exceed the requirements of a Client SLA, fulfill it to gain ARR (Annual Recurring Revenue) and recurring Residual income. First startup to 20 ARR triggers the Series-B market buyout!",
-                targetId: "tour-target-decks"
-            }
-        ];
-
-        let currentTourIndex = 0;
-
-        function dismissSplash() {
-            document.getElementById('splash-screen').classList.add('hidden');
-        }
-
-        function startGuidedTour() {
-            dismissSplash();
-            currentTourIndex = 0;
-            document.getElementById('tour-overlay').classList.remove('hidden');
-            document.getElementById('tour-box').classList.remove('hidden');
-            renderTourStep();
-        }
-
-        function openHelpTour() {
-            currentTourIndex = 0;
-            document.getElementById('tour-overlay').classList.remove('hidden');
-            document.getElementById('tour-box').classList.remove('hidden');
-            renderTourStep();
-        }
-
-        function renderTourStep() {
-            const step = TOUR_STEPS[currentTourIndex];
-            document.getElementById('tour-step-counter').textContent = `STEP ${currentTourIndex + 1} OF ${TOUR_STEPS.length}`;
-            document.getElementById('tour-title').textContent = step.title;
-            document.getElementById('tour-body').textContent = step.body;
-
-            // Update focus ring
-            document.querySelectorAll('.tour-highlight').forEach(el => el.classList.remove('tour-highlight'));
-            const targetEl = document.getElementById(step.targetId);
-            if (targetEl) {
-                targetEl.classList.add('tour-highlight');
-                // Ensure tab visibility on mobile
-                if (window.innerWidth < 768) {
-                    if (step.targetId === 'tour-target-player' || step.targetId === 'tour-target-decks') {
-                        setMobileTab('status');
-                    } else {
-                        setMobileTab('board');
-                    }
-                }
-                targetEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
-            }
-
-            // Button controls
-            document.getElementById('tour-prev-btn').disabled = (currentTourIndex === 0);
-            const nextBtn = document.getElementById('tour-next-btn');
-            if (currentTourIndex === TOUR_STEPS.length - 1) {
-                nextBtn.textContent = "Finish & Play ➔";
-            } else {
-                nextBtn.textContent = "Next ➔";
-            }
-        }
-
-        function nextTourStep() {
-            if (currentTourIndex < TOUR_STEPS.length - 1) {
-                currentTourIndex++;
-                renderTourStep();
-            } else {
-                exitTour();
-            }
-        }
-
-        function prevTourStep() {
-            if (currentTourIndex > 0) {
-                currentTourIndex--;
-                renderTourStep();
-            }
-        }
-
-        function exitTour() {
-            document.querySelectorAll('.tour-highlight').forEach(el => el.classList.remove('tour-highlight'));
-            document.getElementById('tour-overlay').classList.add('hidden');
-            document.getElementById('tour-box').classList.add('hidden');
-        }
-
-        // ==========================================
-        // MASTER TEMPLATE DECKS (IMMUTABLE)
-        // ==========================================
-        const MASTER_MODULES = Object.freeze([
-            { id: "m1", type: "MODULE", sub: "FRONTEND", name: "Tailwind UI Kit", val: 1 },
-            { id: "m2", type: "MODULE", sub: "FRONTEND", name: "React State Core", val: 2 },
-            { id: "m3", type: "MODULE", sub: "FRONTEND", name: "WebGL 3D Engine", val: 3 },
-            { id: "m4", type: "MODULE", sub: "BACKEND", name: "Node Express API", val: 1 },
-            { id: "m5", type: "MODULE", sub: "BACKEND", name: "Rust Async Engine", val: 2 },
-            { id: "m6", type: "MODULE", sub: "BACKEND", name: "Postgres Shard Pool", val: 3 },
-            { id: "m7", type: "MODULE", sub: "DISTRIBUTED", name: "Kafka Broker Mesh", val: 4 },
-            { id: "m8", type: "MODULE", sub: "DISTRIBUTED", name: "Raft Quorum Layer", val: 5 }
+        // MASTER CARDS DEFINITION
+        const ALL_MODULES = Object.freeze([
+            { id: "m1", type: "MODULE", sub: "FRONTEND", name: "User Interface & Buttons", val: 1, desc: "A simple, clean webpage interface." },
+            { id: "m2", type: "MODULE", sub: "FRONTEND", name: "Customer Portal Screen", val: 2, desc: "Interactive customer dashboard." },
+            { id: "m3", type: "MODULE", sub: "FRONTEND", name: "3D Visual Web Graphics", val: 3, desc: "High-end visual display components." },
+            { id: "m4", type: "MODULE", sub: "BACKEND", name: "Fast Database Connector", val: 1, desc: "Saves user information quickly." },
+            { id: "m5", type: "MODULE", sub: "BACKEND", name: "Payment Processing Engine", val: 2, desc: "Securely charges credit cards." },
+            { id: "m6", type: "MODULE", sub: "BACKEND", name: "Encrypted Data Vault", val: 3, desc: "Banks use this to keep data secure." },
+            { id: "m7", type: "MODULE", sub: "DISTRIBUTED", name: "Real-time Messaging Queue", val: 4, desc: "Processes millions of events every second." },
+            { id: "m8", type: "MODULE", sub: "DISTRIBUTED", name: "Global Cloud Synchroniser", val: 5, desc: "Keeps systems across continents in sync." }
         ]);
 
-        const MASTER_SLAS = Object.freeze([
-            { id: "s1", type: "SLA", title: "SMB SaaS Dashboard", reqType: "FRONTEND", minTier: 2, arr: 2, residual: 1 },
-            { id: "s2", type: "SLA", title: "Fintech Core Gateway", reqType: "BACKEND", minTier: 3, arr: 3, residual: 1 },
-            { id: "s3", type: "SLA", title: "E-Commerce Cloud Mesh", reqType: "DISTRIBUTED", minTier: 4, arr: 5, residual: 2 },
-            { id: "s4", type: "SLA", title: "GovTech Secure Auth", reqType: "BACKEND", minTier: 2, arr: 2, residual: 2 },
-            { id: "s5", type: "SLA", title: "Global Telecom 99.999%", reqType: "DISTRIBUTED", minTier: 5, arr: 6, residual: 3 }
+        const ALL_SLAS = Object.freeze([
+            { id: "s1", type: "SLA", title: "Local Business Website", reqType: "FRONTEND", minTier: 2, arr: 2, residual: 1, desc: "Requires reliable User Interface code (Level 2+)." },
+            { id: "s2", type: "SLA", title: "Online Banking Core", reqType: "BACKEND", minTier: 3, arr: 3, residual: 1, desc: "Requires tested Backend database engine (Level 3+)." },
+            { id: "s3", type: "SLA", title: "Airline Booking Network", reqType: "DISTRIBUTED", minTier: 4, arr: 5, residual: 2, desc: "Requires hardened distributed cloud architecture (Level 4+)." },
+            { id: "s4", type: "SLA", title: "Healthcare Medical Records", reqType: "BACKEND", minTier: 2, arr: 2, residual: 2, desc: "Requires verified and secure database storage (Level 2+)." },
+            { id: "s5", type: "SLA", title: "National Supermarket Supply", reqType: "DISTRIBUTED", minTier: 5, arr: 6, residual: 3, desc: "Demands 99.999% uptime with zero outages (Level 5+)." }
         ]);
 
-        const MASTER_ADVISORS = Object.freeze([
-            { id: "a1", type: "ADVISOR", title: "Angel Investor", desc: "Gain +$4 Capital.", run: (p) => { p.capital += 4; } },
-            { id: "a2", type: "ADVISOR", title: "Growth Marketer", desc: "Gain +1 ARR directly.", run: (p) => { p.arr += 1; } },
-            { id: "a3", type: "ADVISOR", title: "Talent Scout", desc: "Recruit 1 extra dev for this year.", run: (p) => { p.workers.push({ id: 99, type: 'JUNIOR', available: true }); } },
-            { id: "a4", type: "ADVISOR", title: "YC Partner", desc: "Draw 2 Modules & gain +$1.", run: (p) => { drawCard('MODULE'); drawCard('MODULE'); p.capital += 1; } }
+        const ALL_ADVISORS = Object.freeze([
+            { id: "a1", type: "ADVISOR", title: "Local Angel Investor", desc: "Grants you +$4 working capital immediately.", run: (p) => { p.capital += 4; } },
+            { id: "a2", type: "ADVISOR", title: "Sales Consultant", desc: "Secures an early contract: +1 Revenue immediately.", run: (p) => { p.arr += 1; } },
+            { id: "a3", type: "ADVISOR", title: "Recruitment Specialist", desc: "Brings in 1 extra Junior Developer for this year.", run: (p) => { p.workers.push({ id: Date.now(), type: 'JUNIOR', available: true }); } },
+            { id: "a4", type: "ADVISOR", title: "Business Mentor", desc: "Draw 2 new Code cards & gain +$1 cash.", run: (p) => { drawCard('MODULE'); drawCard('MODULE'); p.capital += 1; } }
         ]);
 
-        const MASTER_PRINCIPALS = Object.freeze([
-            { id: "pr1", type: "PRINCIPAL", title: "Staff Architect", desc: "Harden all deployed builds by +1 Tier.", run: (p) => { p.pipelines.forEach(pipe => pipe.tier++); } },
-            { id: "pr2", type: "PRINCIPAL", title: "Site Reliability VP", desc: "Upgrade Cluster Infra for free.", run: (p) => { if (p.clusterTier < 3) p.clusterTier++; } },
-            { id: "pr3", type: "PRINCIPAL", title: "Principal DevOps", desc: "Instantly compile all buffer fragments.", run: (p) => { 
+        const ALL_PRINCIPALS = Object.freeze([
+            { id: "pr1", type: "PRINCIPAL", title: "Lead Systems Architect", desc: "Tests all systems: Upgrades all live builds by +1 stability level.", run: (p) => { p.pipelines.forEach(pipe => pipe.tier++); } },
+            { id: "pr2", type: "PRINCIPAL", title: "Senior Cloud Director", desc: "Upgrades your server capacity for free.", run: (p) => { if (p.clusterTier < 3) p.clusterTier++; } },
+            { id: "pr3", type: "PRINCIPAL", title: "DevOps Engineer", desc: "Instantly compiles all code in memory onto live servers.", run: (p) => { 
                 while(p.buffer.length) {
                     const f = p.buffer.pop();
-                    p.pipelines.push({ name: `${f.name} Release`, type: f.type, tier: f.val });
+                    p.pipelines.push({ name: `${f.name} System`, type: f.type, tier: f.val });
                 }
             }}
         ]);
 
-        function secureShuffle(sourceArray) {
-            const array = typeof structuredClone === 'function' 
-                ? structuredClone(sourceArray) 
-                : JSON.parse(JSON.stringify(sourceArray));
+        // SPRING SCHEDULE (1-7)
+        const SPRING_BENEFITS = [
+            { pos: 1, label: "1: First Turn (No Bonus)", run: (p) => {} },
+            { pos: 2, label: "2: +1 Code Card", run: (p) => { drawCard('MODULE'); } },
+            { pos: 3, label: "3: +1 Client Contract", run: (p) => { drawCard('SLA'); } },
+            { pos: 4, label: "4: +$1 Cash", run: (p) => { p.capital += 1; } },
+            { pos: 5, label: "5: +1 Advisor Card", run: (p) => { drawCard('ADVISOR'); } },
+            { pos: 6, label: "6: +1 Revenue", run: (p) => { p.arr += 1; } },
+            { pos: 7, label: "7: +1 Temp Contractor", run: (p) => { p.workers.push({ id: 999, type: 'CONTRACTOR', available: true }); } }
+        ];
 
+        function secureShuffle(sourceArray) {
+            const array = JSON.parse(JSON.stringify(sourceArray));
             for (let i = array.length - 1; i > 0; i--) {
-                let j;
-                if (window.crypto && window.crypto.getRandomValues) {
-                    const randomBuffer = new Uint32Array(1);
-                    window.crypto.getRandomValues(randomBuffer);
-                    j = Math.floor((randomBuffer[0] / (0xFFFFFFFF + 1)) * (i + 1));
-                } else {
-                    j = Math.floor(Math.random() * (i + 1));
-                }
+                const j = Math.floor(Math.random() * (i + 1));
                 [array[i], array[j]] = [array[j], array[i]];
             }
             return array;
         }
 
-        function drawCardFromDeck(deckKey) {
-            const deck = G.decks[deckKey];
-            if (!deck) return null;
-
-            if (deck.draw.length === 0) {
-                if (deck.discard.length === 0) {
-                    log(`The ${deckKey} deck has no cards left in play or discard!`, "rose-400");
-                    return null;
-                }
-                deck.draw = secureShuffle(deck.discard);
-                deck.discard = [];
-                log(`[DECK] ${deckKey} draw pile exhausted. Discard pile shuffled back into play.`, "cyan-400");
-            }
-
-            return deck.draw.pop();
-        }
-
         let G = null;
 
-        function initGame() {
+        function bootGame() {
             G = {
                 year: 1,
-                season: "SPRING",
+                phase: "SETUP",
+                activeTurn: "HUMAN",
                 decks: {
-                    MODULE: { draw: secureShuffle(MASTER_MODULES), discard: [] },
-                    SLA: { draw: secureShuffle(MASTER_SLAS), discard: [] },
-                    ADVISOR: { draw: secureShuffle(MASTER_ADVISORS), discard: [] },
-                    PRINCIPAL: { draw: secureShuffle(MASTER_PRINCIPALS), discard: [] }
+                    MODULE: { draw: secureShuffle(ALL_MODULES), discard: [] },
+                    SLA: { draw: secureShuffle(ALL_SLAS), discard: [] },
+                    ADVISOR: { draw: secureShuffle(ALL_ADVISORS), discard: [] },
+                    PRINCIPAL: { draw: secureShuffle(ALL_PRINCIPALS), discard: [] }
                 },
                 human: {
-                    capital: 4,
+                    capital: 0,
                     arr: 0,
                     residual: 0,
                     clusterTier: 1,
-                    workers: [
-                        { id: 1, type: "JUNIOR", available: true },
-                        { id: 2, type: "JUNIOR", available: true },
-                        { id: 3, type: "ARCHITECT", available: true }
-                    ],
+                    workers: [],
+                    structures: [],
+                    wakePosition: null,
                     repos: [
-                        { name: "Repo Alpha", module: null },
-                        { name: "Repo Beta", module: null },
-                        { name: "Repo Gamma", module: null }
+                        { name: "Project Folder 1", module: null },
+                        { name: "Project Folder 2", module: null },
+                        { name: "Project Folder 3", module: null }
                     ],
                     buffer: [],
                     pipelines: [],
-                    hand: []
+                    hand: [],
+                    passedSummer: false,
+                    passedWinter: false
                 },
                 ai: {
-                    capital: 4,
+                    capital: 0,
                     arr: 0,
                     residual: 0,
-                    workersLeft: 3,
-                    lastAction: "Rival ready for spring sprint."
+                    clusterTier: 1,
+                    workers: [],
+                    wakePosition: null,
+                    passedSummer: false,
+                    passedWinter: false
                 },
-                boardSlots: {
+                slots: {
                     commit: null,
                     fund: null,
-                    drawSummer: null,
+                    build: null,
+                    advisor: null,
                     extract: null,
                     compile: null,
-                    sla: null
+                    sla: null,
+                    principal: null
                 }
             };
 
-            ['MODULE', 'SLA', 'ADVISOR', 'PRINCIPAL'].forEach(type => {
-                const c = drawCardFromDeck(type);
-                if (c) G.human.hand.push(c);
+            log("Starting new software venture. Assemble your founding team...", "cyan-400");
+            showDraftModal();
+            render();
+        }
+
+        function openExplainModal() {
+            document.getElementById('modal-explain').classList.remove('hidden');
+        }
+
+        function closeModal() {
+            document.getElementById('modal-dialog').classList.add('hidden');
+        }
+
+        // ==========================================
+        // 1. SETUP: DRAFTING CO-FOUNDERS
+        // ==========================================
+        function showDraftModal() {
+            const modal = document.getElementById('modal-dialog');
+            const title = document.getElementById('modal-title');
+            const badge = document.getElementById('modal-badge');
+            const body = document.getElementById('modal-body');
+            const actions = document.getElementById('modal-actions');
+
+            badge.textContent = "STEP 1: CO-FOUNDERS SELECTION";
+            title.textContent = "Choose Your Starting Co-Founders";
+            
+            body.innerHTML = `
+                <p class="text-slate-300">Every tech company begins with a balance between <strong>Technical Leadership</strong> (writing code) and <strong>Commercial Strategy</strong> (funding and equipment). Choose your starting team:</p>
+                
+                <div class="space-y-3 pt-3">
+                    <label class="text-xs font-bold text-amber-400 block font-mono">1. CHOOSE TECHNICAL CO-FOUNDER (CTO):</label>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 font-mono">
+                        <label class="bg-slate-950 p-4 rounded-xl border border-slate-800 flex items-start space-x-3 cursor-pointer hover:border-cyan-500 transition">
+                            <input type="radio" name="cto-select" value="0" checked class="mt-1">
+                            <div>
+                                <strong class="text-slate-200 block text-xs mb-1">Experienced Developer</strong>
+                                <span class="text-[11px] text-slate-400 font-sans leading-relaxed">Provides 2 Junior Devs, 1 Lead Architect, 1 Code Module, and 1 Business Advisor card.</span>
+                            </div>
+                        </label>
+                        <label class="bg-slate-950 p-4 rounded-xl border border-slate-800 flex items-start space-x-3 cursor-pointer hover:border-cyan-500 transition">
+                            <input type="radio" name="cto-select" value="1" class="mt-1">
+                            <div>
+                                <strong class="text-slate-200 block text-xs mb-1">Product Specialist</strong>
+                                <span class="text-[11px] text-slate-400 font-sans leading-relaxed">Provides 2 Junior Devs, 1 Lead Architect, 1 Code Module, and 1 early Client Contract.</span>
+                            </div>
+                        </label>
+                    </div>
+                </div>
+
+                <div class="space-y-3 pt-4 border-t border-slate-800 mt-4">
+                    <label class="text-xs font-bold text-cyan-400 block font-mono">2. CHOOSE COMMERCIAL CO-FOUNDER (CEO):</label>
+                    <div class="space-y-3 font-mono">
+                        <label class="bg-slate-950 p-4 rounded-xl border border-slate-800 flex items-start space-x-3 cursor-pointer hover:border-cyan-500 transition">
+                            <input type="radio" name="ceo-select" value="0" checked class="mt-1">
+                            <div>
+                                <strong class="text-slate-200 text-xs mb-1 block">High Cash Reserve: +$6 Starting Bank Balance</strong>
+                                <span class="text-[11px] text-slate-400 font-sans leading-relaxed">Gives maximum cash flexibility, but no pre-built testing tools.</span>
+                            </div>
+                        </label>
+                        <label class="bg-slate-950 p-4 rounded-xl border border-slate-800 flex items-start space-x-3 cursor-pointer hover:border-cyan-500 transition">
+                            <input type="radio" name="ceo-select" value="1" class="mt-1">
+                            <div>
+                                <strong class="text-slate-200 text-xs mb-1 block">Infrastructure Partner: +$3 Cash + Free Automated Testing Tool</strong>
+                                <span class="text-[11px] text-slate-400 font-sans leading-relaxed">Saves $2 on software tools so your code improves automatically at year-end.</span>
+                            </div>
+                        </label>
+                    </div>
+                </div>
+            `;
+
+            actions.innerHTML = `
+                <button onclick="commitFoundingDraft()" class="bg-cyan-500 hover:bg-cyan-400 text-slate-950 font-bold px-5 py-2.5 rounded-lg text-sm transition touch-target w-full sm:w-auto">
+                    Confirm Team & Enter Year 1 ➔
+                </button>
+            `;
+            modal.classList.remove('hidden');
+        }
+
+        function commitFoundingDraft() {
+            const ctoChoice = document.querySelector('input[name="cto-select"]:checked').value;
+            const ceoChoice = document.querySelector('input[name="ceo-select"]:checked').value;
+
+            G.human.workers = [
+                { id: 1, type: "JUNIOR", available: true },
+                { id: 2, type: "JUNIOR", available: true },
+                { id: 3, type: "ARCHITECT", available: true }
+            ];
+
+            drawCard('MODULE');
+            if (ctoChoice === "0") {
+                drawCard('ADVISOR');
+            } else {
+                drawCard('SLA');
+            }
+
+            if (ceoChoice === "0") {
+                G.human.capital = 6;
+            } else {
+                G.human.capital = 3;
+                G.human.structures.push("Testing Tool");
+            }
+
+            // Rival AI setup
+            G.ai.workers = [
+                { id: 101, type: "JUNIOR", available: true },
+                { id: 102, type: "JUNIOR", available: true },
+                { id: 103, type: "ARCHITECT", available: true }
+            ];
+            G.ai.capital = 4;
+
+            closeModal();
+            log(`Co-Founders onboard! Bank balance: $${G.human.capital}. 3 engineers ready.`, "emerald-400");
+            
+            startSpringPhase();
+        }
+
+        // ==========================================
+        // 2. SPRING: SPRINT SCHEDULE
+        // ==========================================
+        function startSpringPhase() {
+            G.phase = "SPRING";
+            G.human.wakePosition = null;
+            G.ai.wakePosition = null;
+            G.human.passedSummer = false;
+            G.human.passedWinter = false;
+            G.ai.passedSummer = false;
+            G.ai.passedWinter = false;
+
+            Object.keys(G.slots).forEach(k => G.slots[k] = null);
+
+            log("=== SPRING: SPRINT PLANNING ===", "amber-400");
+            log("Pick when your team deploys this year. Slot 1 guarantees you choose your actions first!", "slate-300");
+
+            if (G.year > 1 && G.ai.arr < G.human.arr) {
+                aiChooseSpringPosition();
+            }
+            promptHumanSpringSelection();
+            render();
+        }
+
+        function promptHumanSpringSelection() {
+            document.getElementById('turn-banner-text').textContent = "Spring Planning: Click a slot on the Sprint Schedule (1 to 7) below to choose your turn order & bonus.";
+            document.getElementById('turn-banner-actions').innerHTML = "";
+        }
+
+        function selectSpringPosition(pos) {
+            if (G.phase !== 'SPRING') return;
+            if (G.ai.wakePosition === pos) {
+                return log(`Slot ${pos} is already claimed by the competitor! Pick an available slot.`, "rose-400");
+            }
+
+            G.human.wakePosition = pos;
+            const benefit = SPRING_BENEFITS.find(b => b.pos === pos);
+            benefit.run(G.human);
+            log(`You picked Slot ${pos}: Received ${benefit.label}.`, "cyan-400");
+
+            if (!G.ai.wakePosition) {
+                aiChooseSpringPosition();
+            }
+
+            G.activeTurn = G.human.wakePosition < G.ai.wakePosition ? "HUMAN" : "AI";
+            startSummerPhase();
+        }
+
+        function aiChooseSpringPosition() {
+            const available = [1, 2, 3, 4, 5, 6, 7].filter(p => p !== G.human.wakePosition);
+            const pick = available[Math.floor(Math.random() * Math.min(3, available.length))];
+            G.ai.wakePosition = pick;
+            if (pick === 4) G.ai.capital += 1;
+            if (pick === 6) G.ai.arr += 1;
+            log(`Competitor selected Sprint Schedule Slot ${pick}.`, "purple-400");
+        }
+
+        // ==========================================
+        // 3. TURN CONTROLLERS
+        // ==========================================
+        function startSummerPhase() {
+            G.phase = "SUMMER";
+            log(`=== SUMMER: DEVELOPMENT & FINANCING ===`, "amber-400");
+            executeTurnCycle();
+        }
+
+        function executeTurnCycle() {
+            updateTurnBanner();
+            render();
+
+            if (G.phase === 'SUMMER') {
+                if (G.human.passedSummer && G.ai.passedSummer) {
+                    startWinterPhase();
+                    return;
+                }
+            } else if (G.phase === 'WINTER') {
+                if (G.human.passedWinter && G.ai.passedWinter) {
+                    endOfYearAging();
+                    return;
+                }
+            }
+
+            if (G.activeTurn === "AI") {
+                setTimeout(runAITurn, 800); // Slightly slower for better readability
+            }
+        }
+
+        function updateTurnBanner() {
+            const isMyTurn = G.activeTurn === "HUMAN";
+            const bannerText = document.getElementById('turn-banner-text');
+            const dot = document.getElementById('turn-indicator-dot');
+            const actions = document.getElementById('turn-banner-actions');
+
+            if (G.phase === 'SUMMER') {
+                if (isMyTurn && !G.human.passedSummer) {
+                    dot.className = "h-2.5 w-2.5 rounded-full bg-cyan-400 animate-ping";
+                    bannerText.textContent = "YOUR TURN (Summer): Assign an engineer to a slot, or click 'Pass' to save staff for Winter.";
+                    actions.innerHTML = `<button onclick="passPhase()" class="bg-amber-500/20 text-amber-300 hover:bg-amber-500/30 px-4 py-2 rounded-lg border border-amber-500/40 text-sm font-bold transition w-full sm:w-auto touch-target">Pass Summer ➔</button>`;
+                } else {
+                    dot.className = "h-2.5 w-2.5 rounded-full bg-purple-400";
+                    bannerText.textContent = "Competitor is assigning an engineer...";
+                    actions.innerHTML = "";
+                }
+            } else if (G.phase === 'WINTER') {
+                if (isMyTurn && !G.human.passedWinter) {
+                    dot.className = "h-2.5 w-2.5 rounded-full bg-cyan-400 animate-ping";
+                    bannerText.textContent = "YOUR TURN (Winter): Test code, deploy to live servers, or deliver contracts.";
+                    actions.innerHTML = `<button onclick="passPhase()" class="bg-blue-500/20 text-blue-300 hover:bg-blue-500/30 px-4 py-2 rounded-lg border border-blue-500/40 text-sm font-bold transition w-full sm:w-auto touch-target">Pass Winter ➔</button>`;
+                } else {
+                    dot.className = "h-2.5 w-2.5 rounded-full bg-purple-400";
+                    bannerText.textContent = "Competitor is taking action...";
+                    actions.innerHTML = "";
+                }
+            }
+        }
+
+        function passPhase() {
+            if (G.phase === 'SUMMER') {
+                G.human.passedSummer = true;
+                log("You passed for Summer. All unassigned engineers are saved for Winter.", "slate-400");
+            } else if (G.phase === 'WINTER') {
+                G.human.passedWinter = true;
+                log("You passed for Winter.", "slate-400");
+            }
+            G.activeTurn = "AI";
+            executeTurnCycle();
+        }
+
+        // =========================================================
+        // CARD INSPECTION (CLICK HAND CARDS TO VIEW & CANCEL)
+        // =========================================================
+        function inspectCard(cardId) {
+            const card = G.human.hand.find(c => c.id === cardId);
+            if (!card) return;
+
+            const modal = document.getElementById('modal-dialog');
+            const title = document.getElementById('modal-title');
+            const badge = document.getElementById('modal-badge');
+            const body = document.getElementById('modal-body');
+            const actions = document.getElementById('modal-actions');
+
+            let categoryLabel = "CODE COMPONENT";
+            let badgeClass = "text-emerald-400";
+            if (card.type === 'SLA') { categoryLabel = "CLIENT CONTRACT (SLA)"; badgeClass = "text-purple-400"; }
+            if (card.type === 'ADVISOR') { categoryLabel = "BUSINESS ADVISOR"; badgeClass = "text-amber-400"; }
+            if (card.type === 'PRINCIPAL') { categoryLabel = "SENIOR ARCHITECT"; badgeClass = "text-blue-400"; }
+
+            badge.textContent = `CARD INSPECTOR // ${categoryLabel}`;
+            badge.className = `text-[11px] font-bold uppercase tracking-wider block ${badgeClass}`;
+            title.textContent = card.name || card.title;
+
+            let detailsHtml = `
+                <div class="bg-slate-950 p-4 rounded-xl border border-slate-800 space-y-3">
+                    <div class="flex justify-between items-center text-sm font-mono border-b border-slate-800/50 pb-2">
+                        <span class="text-slate-400">Card Type:</span>
+                        <span class="${badgeClass} font-bold">${card.type}</span>
+                    </div>
+            `;
+
+            if (card.type === 'MODULE') {
+                detailsHtml += `
+                    <div class="flex justify-between items-center text-sm font-mono">
+                        <span class="text-slate-400">Layer:</span>
+                        <span class="text-slate-200">${card.sub}</span>
+                    </div>
+                    <div class="flex justify-between items-center text-sm font-mono">
+                        <span class="text-slate-400">Complexity:</span>
+                        <span class="text-emerald-400 font-bold">Level ${card.val}</span>
+                    </div>
+                    <div class="text-sm text-slate-300 font-sans pt-2 border-t border-slate-800 mt-2">
+                        ${card.desc}
+                    </div>
+                    <div class="bg-slate-900/50 p-2.5 rounded border border-slate-800 mt-3 text-xs text-slate-400 italic">
+                        💡 To write this code, assign an engineer to the <strong>"1. Write Code into Folder"</strong> slot during Summer.
+                    </div>
+                `;
+            } else if (card.type === 'SLA') {
+                detailsHtml += `
+                    <div class="flex justify-between items-center text-sm font-mono">
+                        <span class="text-slate-400">Required Software:</span>
+                        <span class="text-purple-300 font-bold">${card.reqType} at Level ${card.minTier}+</span>
+                    </div>
+                    <div class="flex justify-between items-center text-sm font-mono">
+                        <span class="text-slate-400">Reward:</span>
+                        <span class="text-emerald-400 font-bold">+${card.arr} Revenue & +$${card.residual}/yr Sub</span>
+                    </div>
+                    <div class="text-sm text-slate-300 font-sans pt-2 border-t border-slate-800 mt-2">
+                        ${card.desc}
+                    </div>
+                    <div class="bg-slate-900/50 p-2.5 rounded border border-slate-800 mt-3 text-xs text-slate-400 italic">
+                        💡 To deliver this contract, use the <strong>"3. Deliver Client Contract"</strong> action during Winter when your live servers meet the requirements.
+                    </div>
+                `;
+            } else if (card.type === 'ADVISOR') {
+                detailsHtml += `
+                    <div class="text-sm text-slate-200 font-sans">
+                        <strong>Advisor Benefit:</strong> ${card.desc}
+                    </div>
+                    <div class="bg-slate-900/50 p-2.5 rounded border border-slate-800 mt-3 text-xs text-slate-400 italic">
+                        💡 Play this card during Summer using the <strong>"4. Meet Business Advisor"</strong> action space.
+                    </div>
+                `;
+            } else if (card.type === 'PRINCIPAL') {
+                detailsHtml += `
+                    <div class="text-sm text-slate-200 font-sans">
+                        <strong>Architect Benefit:</strong> ${card.desc}
+                    </div>
+                    <div class="bg-slate-900/50 p-2.5 rounded border border-slate-800 mt-3 text-xs text-slate-400 italic">
+                        💡 Deploy this card during Winter using the <strong>"4. Consult Senior Architect"</strong> action space.
+                    </div>
+                `;
+            }
+
+            detailsHtml += `</div>`;
+            body.innerHTML = detailsHtml;
+
+            // Context-sensitive quick-play buttons
+            let actionBtn = "";
+            const canPlayAdvisorNow = (card.type === 'ADVISOR' && G.phase === 'SUMMER' && G.activeTurn === 'HUMAN' && !G.human.passedSummer);
+            const canPlayPrincipalNow = (card.type === 'PRINCIPAL' && G.phase === 'WINTER' && G.activeTurn === 'HUMAN' && !G.human.passedWinter);
+
+            if (canPlayAdvisorNow) {
+                actionBtn = `<button onclick="closeModal(); handleAdvisorAction('${card.id}')" class="bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold px-4 py-2 rounded-lg text-sm transition touch-target flex-1 sm:flex-none">Play Advisor Now ➔</button>`;
+            } else if (canPlayPrincipalNow) {
+                actionBtn = `<button onclick="closeModal(); handlePrincipalAction('${card.id}')" class="bg-blue-500 hover:bg-blue-400 text-slate-950 font-bold px-4 py-2 rounded-lg text-sm transition touch-target flex-1 sm:flex-none">Deploy Architect Now ➔</button>`;
+            }
+
+            actions.innerHTML = `
+                <button onclick="closeModal()" class="bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold px-5 py-2 rounded-lg text-sm border border-slate-700 transition touch-target w-full sm:w-auto">
+                    Close / Back
+                </button>
+                ${actionBtn}
+            `;
+
+            modal.classList.remove('hidden');
+        }
+
+        // =========================================================
+        // INTERACTIVE ACTION PICKERS
+        // =========================================================
+
+        function getWorkerForAction(slotKey) {
+            if (G.activeTurn !== "HUMAN") {
+                log("Please wait, it is the competitor's turn!", "rose-400");
+                return null;
+            }
+            if (G.phase === 'SUMMER' && G.human.passedSummer) {
+                log("You have already passed Summer!", "rose-400");
+                return null;
+            }
+            if (G.phase === 'WINTER' && G.human.passedWinter) {
+                log("You have already passed Winter!", "rose-400");
+                return null;
+            }
+
+            const occupant = G.slots[slotKey];
+            if (occupant) {
+                const arch = G.human.workers.find(w => w.available && w.type === 'ARCHITECT');
+                if (!arch) {
+                    log("Slot occupied! You need an available Lead Architect to override it.", "rose-400");
+                    return null;
+                }
+                return arch;
+            } else {
+                const standard = G.human.workers.find(w => w.available);
+                if (!standard) {
+                    log("All your engineers are busy! Click 'Pass' to proceed.", "rose-400");
+                    return null;
+                }
+                return standard;
+            }
+        }
+
+        // --- PICKER 1: COMMIT MODULE (CHOOSE CARD + FOLDER) ---
+        function handleCommitAction() {
+            if (G.phase !== 'SUMMER') return log("Write Code is only available in Summer!", "rose-400");
+            const worker = getWorkerForAction('commit');
+            if (!worker) return;
+
+            const modules = G.human.hand.filter(c => c.type === 'MODULE');
+            if (modules.length === 0) return log("You don't have any Code cards in your hand to write!", "rose-400");
+
+            const emptyRepos = G.human.repos.filter(r => !r.module);
+            if (emptyRepos.length === 0) return log("All 3 project folders are full! Extract code in Winter first.", "rose-400");
+
+            const modal = document.getElementById('modal-dialog');
+            document.getElementById('modal-badge').textContent = "WORKER ACTION // WRITE CODE";
+            document.getElementById('modal-title').textContent = "Select Code & Destination Folder";
+
+            let bodyHtml = `
+                <p class="text-slate-300">Choose which piece of software to write, and which Project Folder to store it in:</p>
+                <div class="space-y-4 pt-2">
+                    <div>
+                        <label class="text-xs font-bold text-emerald-400 block font-mono mb-2">1. CHOOSE CODE MODULE TO WRITE:</label>
+                        <div class="space-y-2 font-mono">
+                            ${modules.map((m, idx) => `
+                                <label class="bg-slate-950 p-3 rounded-lg border border-slate-800 flex items-start space-x-3 cursor-pointer hover:border-emerald-500 transition">
+                                    <input type="radio" name="commit-card" value="${m.id}" ${idx === 0 ? 'checked' : ''} class="mt-1">
+                                    <div class="flex-1">
+                                        <div class="flex justify-between">
+                                            <strong class="text-slate-200 text-sm">${m.name}</strong>
+                                            <span class="text-emerald-400 text-xs font-bold">Level ${m.val} (${m.sub})</span>
+                                        </div>
+                                        <span class="text-xs text-slate-400 font-sans block mt-1">${m.desc}</span>
+                                    </div>
+                                </label>
+                            `).join('')}
+                        </div>
+                    </div>
+                    <div class="border-t border-slate-800 pt-3">
+                        <label class="text-xs font-bold text-cyan-400 block font-mono mb-2">2. CHOOSE DESTINATION PROJECT FOLDER:</label>
+                        <div class="space-y-2 font-mono">
+                            ${emptyRepos.map((r, idx) => `
+                                <label class="bg-slate-950 p-3 rounded-lg border border-slate-800 flex items-center space-x-3 cursor-pointer hover:border-cyan-500 transition">
+                                    <input type="radio" name="commit-repo" value="${r.name}" ${idx === 0 ? 'checked' : ''}>
+                                    <div class="text-sm text-slate-200 font-bold">${r.name}</div>
+                                </label>
+                            `).join('')}
+                        </div>
+                    </div>
+                </div>
+            `;
+
+            document.getElementById('modal-body').innerHTML = bodyHtml;
+            document.getElementById('modal-actions').innerHTML = `
+                <button onclick="closeModal()" class="bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold px-4 py-2 rounded-lg text-sm border border-slate-700 transition touch-target w-full sm:w-auto">Cancel</button>
+                <button onclick="confirmCommitAction()" class="bg-cyan-500 hover:bg-cyan-400 text-slate-950 font-bold px-5 py-2 rounded-lg text-sm transition touch-target w-full sm:w-auto">Write Code ➔</button>
+            `;
+            modal.classList.remove('hidden');
+        }
+
+        function confirmCommitAction() {
+            const cardId = document.querySelector('input[name="commit-card"]:checked')?.value;
+            const repoName = document.querySelector('input[name="commit-repo"]:checked')?.value;
+            if (!cardId || !repoName) return;
+
+            const worker = getWorkerForAction('commit');
+            if (!worker) return;
+
+            const cardIndex = G.human.hand.findIndex(c => c.id === cardId);
+            const repo = G.human.repos.find(r => r.name === repoName);
+
+            if (cardIndex === -1 || !repo) return;
+
+            const card = G.human.hand.splice(cardIndex, 1)[0];
+            repo.module = card;
+
+            worker.available = false;
+            G.slots.commit = "HUMAN";
+            closeModal();
+            log(`Wrote "${card.name}" (Level ${card.val}) into ${repo.name}.`, "emerald-400");
+
+            G.activeTurn = "AI";
+            executeTurnCycle();
+        }
+
+        // --- ACTION 2: FUND ---
+        function handleFundAction() {
+            if (G.phase !== 'SUMMER') return log("Grant funding is only available in Summer!", "rose-400");
+            const worker = getWorkerForAction('fund');
+            if (!worker) return;
+
+            worker.available = false;
+            G.slots.fund = "HUMAN";
+            G.human.capital += 1;
+            log("Received small innovation grant: +$1 to bank account.", "emerald-400");
+
+            G.activeTurn = "AI";
+            executeTurnCycle();
+        }
+
+        // --- ACTION 3: BUILD TESTING SUITE ---
+        function handleBuildAction() {
+            if (G.phase !== 'SUMMER') return log("Building test tools is only available in Summer!", "rose-400");
+            if (G.human.capital < 2) return log("You need at least $2 in the bank to buy testing tools!", "rose-400");
+            const worker = getWorkerForAction('build');
+            if (!worker) return;
+
+            worker.available = false;
+            G.slots.build = "HUMAN";
+            G.human.capital -= 2;
+            G.human.structures.push("Testing Tool");
+            log("Purchased Automated Testing Tool ($2). Live code will automatically improve at year-end.", "emerald-400");
+
+            G.activeTurn = "AI";
+            executeTurnCycle();
+        }
+
+        // --- PICKER 4: ADVISOR (CHOOSE WHICH CARD) ---
+        function handleAdvisorAction(preselectedId = null) {
+            if (G.phase !== 'SUMMER') return log("Advisors only consult in Summer!", "rose-400");
+            const worker = getWorkerForAction('advisor');
+            if (!worker) return;
+
+            const advisors = G.human.hand.filter(c => c.type === 'ADVISOR');
+            if (advisors.length === 0) return log("You don't have any yellow Advisor cards in hand!", "rose-400");
+
+            if (preselectedId) {
+                return confirmAdvisorAction(preselectedId);
+            }
+
+            const modal = document.getElementById('modal-dialog');
+            document.getElementById('modal-badge').textContent = "WORKER ACTION // CONSULT ADVISOR";
+            document.getElementById('modal-title').textContent = "Select Advisor Card to Play";
+
+            let bodyHtml = `
+                <p class="text-slate-300">Choose which Business Advisor you want to consult this Summer:</p>
+                <div class="space-y-2 pt-2 font-mono">
+                    ${advisors.map((a, idx) => `
+                        <label class="bg-slate-950 p-3 rounded-lg border border-slate-800 flex items-start space-x-3 cursor-pointer hover:border-amber-500 transition">
+                            <input type="radio" name="advisor-card" value="${a.id}" ${idx === 0 ? 'checked' : ''} class="mt-1">
+                            <div class="flex-1">
+                                <strong class="text-amber-400 text-sm block">${a.title}</strong>
+                                <span class="text-xs text-slate-300 font-sans block mt-1">${a.desc}</span>
+                            </div>
+                        </label>
+                    `).join('')}
+                </div>
+            `;
+
+            document.getElementById('modal-body').innerHTML = bodyHtml;
+            document.getElementById('modal-actions').innerHTML = `
+                <button onclick="closeModal()" class="bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold px-4 py-2 rounded-lg text-sm border border-slate-700 transition touch-target w-full sm:w-auto">Cancel</button>
+                <button onclick="confirmAdvisorAction()" class="bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold px-5 py-2 rounded-lg text-sm transition touch-target w-full sm:w-auto">Consult Advisor ➔</button>
+            `;
+            modal.classList.remove('hidden');
+        }
+
+        function confirmAdvisorAction(directId = null) {
+            const cardId = directId || document.querySelector('input[name="advisor-card"]:checked')?.value;
+            if (!cardId) return;
+
+            const worker = getWorkerForAction('advisor');
+            if (!worker) return;
+
+            const cardIndex = G.human.hand.findIndex(c => c.id === cardId);
+            if (cardIndex === -1) return;
+
+            const card = G.human.hand.splice(cardIndex, 1)[0];
+            worker.available = false;
+            G.slots.advisor = "HUMAN";
+            closeModal();
+
+            card.run(G.human);
+            discardCard(card);
+            log(`Consulted with ${card.title}: ${card.desc}`, "amber-400");
+
+            G.activeTurn = "AI";
+            executeTurnCycle();
+        }
+
+        // --- ACTION 5: EXTRACT CODE ---
+        function handleExtractAction() {
+            if (G.phase !== 'WINTER') return log("Extracting code is only available in Winter!", "rose-400");
+            const worker = getWorkerForAction('extract');
+            if (!worker) return;
+
+            let cnt = 0;
+            G.human.repos.forEach(r => {
+                if (r.module) {
+                    G.human.buffer.push({ name: r.module.name, type: r.module.sub, val: r.module.val });
+                    discardCard(r.module);
+                    r.module = null;
+                    cnt++;
+                }
             });
 
+            if (cnt === 0) return log("No code in folders to extract! Commit code in Summer first.", "rose-400");
+
+            worker.available = false;
+            G.slots.extract = "HUMAN";
+            log(`Loaded ${cnt} code components into testing memory cache.`, "cyan-400");
+
+            G.activeTurn = "AI";
+            executeTurnCycle();
+        }
+
+        // --- ACTION 6: COMPILE RELEASE ---
+        function handleCompileAction() {
+            if (G.phase !== 'WINTER') return log("Publishing to live servers is only available in Winter!", "rose-400");
+            if (G.human.buffer.length === 0) return log("Testing memory is empty! Extract code from folders first.", "rose-400");
+
+            const worker = getWorkerForAction('compile');
+            if (!worker) return;
+
+            const frag = G.human.buffer.pop();
+            G.human.pipelines.push({ name: `${frag.name} System`, type: frag.type, tier: frag.val });
+
+            worker.available = false;
+            G.slots.compile = "HUMAN";
+            log(`Published "${frag.name}" to live server at Level ${frag.val}.`, "cyan-400");
+
+            G.activeTurn = "AI";
+            executeTurnCycle();
+        }
+
+        // --- PICKER 7: DELIVER CLIENT CONTRACT (SLA) ---
+        function handleFulfillAction() {
+            if (G.phase !== 'WINTER') return log("Delivering contracts is only available in Winter!", "rose-400");
+            const worker = getWorkerForAction('sla');
+            if (!worker) return;
+
+            const slas = G.human.hand.filter(c => c.type === 'SLA');
+            if (slas.length === 0) return log("You have no Client Contracts in hand to deliver!", "rose-400");
+
+            // Check if any SLA can be met by current live builds
+            const qualifyingContracts = slas.map(sla => {
+                const matchIndex = G.human.pipelines.findIndex(p => p.tier >= sla.minTier && (p.type === sla.reqType || sla.reqType === 'ANY'));
+                return { sla, matchIndex, canFulfill: matchIndex !== -1 };
+            });
+
+            const modal = document.getElementById('modal-dialog');
+            document.getElementById('modal-badge').textContent = "WORKER ACTION // DELIVER CLIENT CONTRACT";
+            document.getElementById('modal-title').textContent = "Select Contract to Deliver";
+
+            let bodyHtml = `
+                <p class="text-slate-300">Choose which Client Contract you want to fulfill using your live server builds:</p>
+                <div class="space-y-3 pt-2 font-mono">
+                    ${qualifyingContracts.map((item, idx) => `
+                        <label class="bg-slate-950 p-3 rounded-lg border ${item.canFulfill ? 'border-slate-800 hover:border-purple-500 cursor-pointer' : 'border-slate-800/40 opacity-50 cursor-not-allowed'} flex items-start space-x-3 transition">
+                            <input type="radio" name="sla-card" value="${item.sla.id}" ${item.canFulfill && idx === 0 ? 'checked' : ''} ${!item.canFulfill ? 'disabled' : ''} class="mt-1">
+                            <div class="flex-1">
+                                <div class="flex justify-between items-center mb-1">
+                                    <strong class="text-slate-200 text-sm">${item.sla.title}</strong>
+                                    <span class="${item.canFulfill ? 'text-emerald-400 font-bold' : 'text-slate-500'} text-[10px]">${item.canFulfill ? 'Ready to Deliver' : 'Needs Better Servers'}</span>
+                                </div>
+                                <div class="text-xs text-purple-300 font-mono mt-0.5">Demands: ${item.sla.reqType} at Level ${item.sla.minTier}+</div>
+                                <div class="text-xs text-emerald-400 font-mono mt-0.5">Reward: +${item.sla.arr} Revenue, +$${item.sla.residual}/yr Subscription</div>
+                            </div>
+                        </label>
+                    `).join('')}
+                </div>
+            `;
+
+            const hasAnyQualifying = qualifyingContracts.some(q => q.canFulfill);
+
+            document.getElementById('modal-body').innerHTML = bodyHtml;
+            document.getElementById('modal-actions').innerHTML = `
+                <button onclick="closeModal()" class="bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold px-4 py-2 rounded-lg text-sm border border-slate-700 transition touch-target w-full sm:w-auto">Cancel</button>
+                <button onclick="confirmFulfillAction()" ${!hasAnyQualifying ? 'disabled' : ''} class="bg-purple-500 hover:bg-purple-400 disabled:opacity-30 disabled:cursor-not-allowed text-slate-950 font-bold px-5 py-2 rounded-lg text-sm transition touch-target w-full sm:w-auto">Deliver Contract ➔</button>
+            `;
+            modal.classList.remove('hidden');
+        }
+
+        function confirmFulfillAction() {
+            const cardId = document.querySelector('input[name="sla-card"]:checked')?.value;
+            if (!cardId) return;
+
+            const worker = getWorkerForAction('sla');
+            if (!worker) return;
+
+            const slaIndex = G.human.hand.findIndex(c => c.id === cardId);
+            if (slaIndex === -1) return;
+
+            const sla = G.human.hand[slaIndex];
+            const matchIndex = G.human.pipelines.findIndex(p => p.tier >= sla.minTier && (p.type === sla.reqType || sla.reqType === 'ANY'));
+
+            if (matchIndex === -1) return;
+
+            G.human.pipelines.splice(matchIndex, 1);
+            const consumedSla = G.human.hand.splice(slaIndex, 1)[0];
+            discardCard(consumedSla);
+
+            G.human.arr += sla.arr;
+            G.human.residual += sla.residual;
+
+            worker.available = false;
+            G.slots.sla = "HUMAN";
+            closeModal();
+
+            log(`Delivered contract to ${sla.title}! Gained +${sla.arr} Annual Revenue and +$${sla.residual}/yr subscription.`, "emerald-400");
+
+            G.activeTurn = "AI";
+            executeTurnCycle();
+        }
+
+        // --- PICKER 8: SENIOR ARCHITECT (CHOOSE WHICH PRINCIPAL) ---
+        function handlePrincipalAction(preselectedId = null) {
+            if (G.phase !== 'WINTER') return log("Senior Architects only consult in Winter!", "rose-400");
+            const worker = getWorkerForAction('principal');
+            if (!worker) return;
+
+            const principals = G.human.hand.filter(c => c.type === 'PRINCIPAL');
+            if (principals.length === 0) return log("You don't have any blue Senior Engineer cards in hand!", "rose-400");
+
+            if (preselectedId) {
+                return confirmPrincipalAction(preselectedId);
+            }
+
+            const modal = document.getElementById('modal-dialog');
+            document.getElementById('modal-badge').textContent = "WORKER ACTION // SENIOR ARCHITECT";
+            document.getElementById('modal-title').textContent = "Select Senior Architect to Deploy";
+
+            let bodyHtml = `
+                <p class="text-slate-300">Choose which Senior Architect to consult this Winter:</p>
+                <div class="space-y-2 pt-2 font-mono">
+                    ${principals.map((p, idx) => `
+                        <label class="bg-slate-950 p-3 rounded-lg border border-slate-800 flex items-start space-x-3 cursor-pointer hover:border-blue-500 transition">
+                            <input type="radio" name="principal-card" value="${p.id}" ${idx === 0 ? 'checked' : ''} class="mt-1">
+                            <div class="flex-1">
+                                <strong class="text-blue-400 text-sm block">${p.title}</strong>
+                                <span class="text-xs text-slate-300 font-sans block mt-1">${p.desc}</span>
+                            </div>
+                        </label>
+                    `).join('')}
+                </div>
+            `;
+
+            document.getElementById('modal-body').innerHTML = bodyHtml;
+            document.getElementById('modal-actions').innerHTML = `
+                <button onclick="closeModal()" class="bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold px-4 py-2 rounded-lg text-sm border border-slate-700 transition touch-target w-full sm:w-auto">Cancel</button>
+                <button onclick="confirmPrincipalAction()" class="bg-blue-500 hover:bg-blue-400 text-slate-950 font-bold px-5 py-2 rounded-lg text-sm transition touch-target w-full sm:w-auto">Deploy Architect ➔</button>
+            `;
+            modal.classList.remove('hidden');
+        }
+
+        function confirmPrincipalAction(directId = null) {
+            const cardId = directId || document.querySelector('input[name="principal-card"]:checked')?.value;
+            if (!cardId) return;
+
+            const worker = getWorkerForAction('principal');
+            if (!worker) return;
+
+            const cardIndex = G.human.hand.findIndex(c => c.id === cardId);
+            if (cardIndex === -1) return;
+
+            const card = G.human.hand.splice(cardIndex, 1)[0];
+            worker.available = false;
+            G.slots.principal = "HUMAN";
+            closeModal();
+
+            card.run(G.human);
+            discardCard(card);
+            log(`Senior Architect executed ${card.title}: ${card.desc}`, "blue-400");
+
+            G.activeTurn = "AI";
+            executeTurnCycle();
+        }
+
+        // ==========================================
+        // 4. COMPETITOR AI
+        // ==========================================
+        function runAITurn() {
+            if (G.phase === 'SUMMER') {
+                const availWorker = G.ai.workers.find(w => w.available);
+                if (!availWorker || Math.random() > 0.7) {
+                    G.ai.passedSummer = true;
+                    log("Competitor completed their Summer assignments.", "purple-400");
+                } else {
+                    if (!G.slots.fund) {
+                        G.slots.fund = "AI";
+                        G.ai.capital += 1;
+                        availWorker.available = false;
+                        log("Competitor took the Grant Funding slot (Occupied).", "purple-400");
+                    } else if (!G.slots.commit) {
+                        G.slots.commit = "AI";
+                        availWorker.available = false;
+                        log("Competitor occupied the Write Code slot.", "purple-400");
+                    } else {
+                        G.ai.passedSummer = true;
+                    }
+                }
+            } else if (G.phase === 'WINTER') {
+                const availWorker = G.ai.workers.find(w => w.available);
+                if (!availWorker || Math.random() > 0.7) {
+                    G.ai.passedWinter = true;
+                    log("Competitor completed their Winter releases.", "purple-400");
+                } else {
+                    if (!G.slots.sla && Math.random() > 0.4) {
+                        G.slots.sla = "AI";
+                        G.ai.arr += 2;
+                        availWorker.available = false;
+                        log("Competitor delivered a client contract for +2 Revenue (Occupied).", "purple-400");
+                    } else if (!G.slots.compile) {
+                        G.slots.compile = "AI";
+                        availWorker.available = false;
+                        log("Competitor occupied the Live Server slot.", "purple-400");
+                    } else {
+                        G.ai.passedWinter = true;
+                    }
+                }
+            }
+
+            G.activeTurn = "HUMAN";
+            executeTurnCycle();
+        }
+
+        // ==========================================
+        // 5. WINTER & YEAR-END AUTOMATED HARDENING
+        // ==========================================
+        function startWinterPhase() {
+            G.phase = "WINTER";
+            log("=== WINTER: PRODUCTION & REVENUE SPRINT ===", "blue-400");
+            G.activeTurn = G.human.wakePosition < G.ai.wakePosition ? "HUMAN" : "AI";
+            executeTurnCycle();
+        }
+
+        function endOfYearAging() {
+            log("=== YEAR-END: AUTOMATED TESTING & STABILITY (AGING) ===", "purple-400");
+            
+            const maxTier = G.human.clusterTier === 3 ? 9 : (G.human.clusterTier === 2 ? 6 : 3);
+            let hardenedCount = 0;
+            
+            // Only harden if they built the Testing Tool
+            if (G.human.structures.includes("Testing Tool")) {
+                G.human.pipelines.forEach(p => {
+                    if (p.tier < maxTier) {
+                        p.tier++;
+                        hardenedCount++;
+                    }
+                });
+                if (hardenedCount > 0) {
+                    log(`Automated tests completed: ${hardenedCount} live releases upgraded to higher stability levels!`, "emerald-400");
+                }
+            } else {
+                log("No Automated Testing Tool installed. Live releases did not upgrade stability.", "slate-400");
+            }
+
+            G.human.capital += G.human.residual;
+            G.ai.capital += G.ai.residual;
+            log(`Collected recurring subscription payouts: +$${G.human.residual} in the bank.`, "amber-400");
+
+            G.human.workers.forEach(w => w.available = true);
+            G.ai.workers.forEach(w => w.available = true);
+
+            if (G.human.arr >= 20 || G.ai.arr >= 20 || G.year >= 7) {
+                const won = G.human.arr >= G.ai.arr;
+                alert(`Sprint Complete!\nFinal Annual Revenue — Your Startup: ${G.human.arr} ARR | Competitor: ${G.ai.arr} ARR\n\n${won ? 'Well done! You built a sustainable, reliable software company and won the market!' : 'The competitor scaled faster this time. Click Restart to try a new strategy!'}`);
+                bootGame();
+                return;
+            }
+
+            G.year++;
             startSpringPhase();
+        }
+
+        function upgradeInfraTier() {
+            if (G.human.capital < 4) return log("You need $4 in the bank to upgrade server capacity.", "rose-400");
+            if (G.human.clusterTier >= 3) return log("Your servers are already at maximum Enterprise capacity!", "rose-400");
+            G.human.capital -= 4;
+            G.human.clusterTier++;
+            log(`Upgraded servers to ${G.human.clusterTier === 2 ? 'Intermediate (Level 6 max)' : 'Enterprise Scale (Level 9 max)'}.`, "emerald-400");
             render();
         }
 
         function drawCard(type) {
-            const card = drawCardFromDeck(type);
-            if (card) G.human.hand.push(card);
-            render();
-            return card;
+            const deck = G.decks[type];
+            if (!deck) return;
+            if (deck.draw.length === 0) {
+                deck.draw = secureShuffle(deck.discard);
+                deck.discard = [];
+            }
+            if (deck.draw.length > 0) {
+                const c = deck.draw.pop();
+                G.human.hand.push(c);
+            }
         }
 
         function discardCard(card) {
@@ -633,428 +1337,121 @@
         }
 
         function log(msg, color = "slate-300") {
-            const box = document.getElementById('log-box');
-            if (!box) return;
+            const stream = document.getElementById('event-stream');
+            if (!stream) return;
             const item = document.createElement('div');
             item.className = `text-${color}`;
-            item.textContent = `[Y${G.year} ${G.season}] ${msg}`;
-            box.appendChild(item);
-            box.scrollTop = box.scrollHeight;
-        }
-
-        function startSpringPhase() {
-            G.season = "SPRING";
-            G.human.capital += 1;
-            drawCard('MODULE');
-            log("Spring Planning: Drew +1 Module card and collected $1 grant.", "amber-400");
-            G.season = "SUMMER";
-        }
-
-        function takeAction(actionKey) {
-            const isSummerAction = ['COMMIT', 'FUND', 'DRAW_SUMMER'].includes(actionKey);
-            const isWinterAction = ['EXTRACT', 'COMPILE', 'FULFILL'].includes(actionKey);
-
-            if (isSummerAction && G.season !== 'SUMMER') return log("Available only in Summer!", "rose-400");
-            if (isWinterAction && G.season !== 'WINTER') return log("Available only in Winter!", "rose-400");
-
-            const slotKey = actionKey === 'DRAW_SUMMER' ? 'drawSummer' : actionKey.toLowerCase();
-            const slotOccupant = G.boardSlots[slotKey];
-
-            let worker = null;
-            if (slotOccupant) {
-                worker = G.human.workers.find(w => w.available && w.type === 'ARCHITECT');
-                if (!worker) return log("Slot blocked by Rival! Needs Principal Architect to bypass.", "rose-400");
-                log("Principal Architect deployed: Bypassed rival slot block!", "purple-400");
-            } else {
-                worker = G.human.workers.find(w => w.available);
-                if (!worker) return log("No available devs remaining this round!", "rose-400");
-            }
-
-            let success = false;
-            if (actionKey === 'COMMIT') {
-                const modIndex = G.human.hand.findIndex(c => c.type === 'MODULE');
-                const emptyRepo = G.human.repos.find(r => !r.module);
-                if (modIndex === -1) return log("No Module cards in hand.", "rose-400");
-                if (!emptyRepo) return log("No empty repos left.", "rose-400");
-
-                const modCard = G.human.hand.splice(modIndex, 1)[0];
-                emptyRepo.module = modCard;
-                log(`Committed ${modCard.name} to ${emptyRepo.name}.`, "emerald-400");
-                success = true;
-            } else if (actionKey === 'FUND') {
-                G.human.capital += 3;
-                log("Secured Angel Round: +$3.", "emerald-400");
-                success = true;
-            } else if (actionKey === 'DRAW_SUMMER') {
-                drawCard('MODULE');
-                drawCard('ADVISOR');
-                log("Scouted tech market: +1 Module & +1 Advisor card.", "emerald-400");
-                success = true;
-            } else if (actionKey === 'EXTRACT') {
-                let cnt = 0;
-                G.human.repos.forEach(r => {
-                    if (r.module) {
-                        G.human.buffer.push({ name: r.module.name, type: r.module.sub, val: r.module.val });
-                        discardCard(r.module);
-                        r.module = null;
-                        cnt++;
-                    }
-                });
-                log(`Extracted ${cnt} modules into buffer cache.`, "cyan-400");
-                success = true;
-            } else if (actionKey === 'COMPILE') {
-                if (G.human.buffer.length === 0) return log("Processing buffer is empty.", "rose-400");
-                const frag = G.human.buffer.pop();
-                G.human.pipelines.push({ name: `${frag.name} Build`, type: frag.type, tier: frag.val });
-                log(`Compiled build "${frag.name}" at Tier ${frag.val}.`, "cyan-400");
-                success = true;
-            } else if (actionKey === 'FULFILL') {
-                const slaIdx = G.human.hand.findIndex(c => c.type === 'SLA');
-                if (slaIdx === -1) return log("No SLA contract in hand.", "rose-400");
-                const sla = G.human.hand[slaIdx];
-                const matchBuildIdx = G.human.pipelines.findIndex(b => b.tier >= sla.minTier && (b.type === sla.reqType || sla.reqType === 'ANY'));
-
-                if (matchBuildIdx === -1) return log(`No build ready for "${sla.title}" (${sla.reqType} >= T${sla.minTier}).`, "rose-400");
-
-                G.human.pipelines.splice(matchBuildIdx, 1);
-                G.human.hand.splice(slaIdx, 1);
-                discardCard(sla);
-                G.human.arr += sla.arr;
-                G.human.residual += sla.residual;
-                log(`Delivered SLA "${sla.title}"! +${sla.arr} ARR, +$${sla.residual} Residual.`, "emerald-400");
-                success = true;
-            }
-
-            if (success) {
-                worker.available = false;
-                G.boardSlots[slotKey] = "HUMAN";
-                rivalAIAction();
-                render();
-            }
-        }
-
-        function playHandCard(cardId) {
-            const idx = G.human.hand.findIndex(c => c.id === cardId);
-            if (idx === -1) return;
-            const card = G.human.hand[idx];
-
-            if (card.type === 'ADVISOR') {
-                if (G.season !== 'SUMMER') return log("Advisors only consult in Summer!", "rose-400");
-                card.run(G.human);
-                G.human.hand.splice(idx, 1);
-                discardCard(card);
-                log(`Consulted Advisor ${card.title}: ${card.desc}`, "amber-400");
-            } else if (card.type === 'PRINCIPAL') {
-                if (G.season !== 'WINTER') return log("Principals only advise in Winter!", "rose-400");
-                card.run(G.human);
-                G.human.hand.splice(idx, 1);
-                discardCard(card);
-                log(`Principal executed ${card.title}: ${card.desc}`, "blue-400");
-            }
-            render();
-        }
-
-        function rivalAIAction() {
-            if (G.ai.workersLeft <= 0) return;
-            if (G.season === 'SUMMER') {
-                if (!G.boardSlots.fund) {
-                    G.boardSlots.fund = "AI";
-                    G.ai.capital += 3;
-                    G.ai.lastAction = "Rival placed dev on Angel Round (Blocked Slot).";
-                } else if (!G.boardSlots.commit) {
-                    G.boardSlots.commit = "AI";
-                    G.ai.lastAction = "Rival placed dev on Commit Module (Blocked Slot).";
-                }
-            } else if (G.season === 'WINTER') {
-                if (!G.boardSlots.sla && Math.random() > 0.3) {
-                    G.boardSlots.sla = "AI";
-                    G.ai.arr += 2;
-                    G.ai.lastAction = "Rival fulfilled enterprise SLA for +2 ARR (Blocked Slot).";
-                } else if (!G.boardSlots.compile) {
-                    G.boardSlots.compile = "AI";
-                    G.ai.lastAction = "Rival compiled deployment build (Blocked Slot).";
-                }
-            }
-            G.ai.workersLeft--;
-        }
-
-        function advanceSeason() {
-            if (G.season === 'SUMMER') {
-                G.season = 'WINTER';
-                log("Transitioned to Winter Phase. Releases & SLAs open.", "cyan-400");
-            } else if (G.season === 'WINTER') {
-                processYearEndCycle();
-            }
-            render();
-        }
-
-        function upgradeClusterInfra() {
-            if (G.human.capital < 4) return log("Need $4 capital to upgrade.", "rose-400");
-            if (G.human.clusterTier >= 3) return log("Already at Enterprise scale (T9).", "rose-400");
-            G.human.capital -= 4;
-            G.human.clusterTier++;
-            log(`Upgraded cluster to Tier ${G.human.clusterTier === 2 ? 'Pre-Prod (T6)' : 'Enterprise HA (T9)'}.`, "emerald-400");
-            render();
-        }
-
-        function processYearEndCycle() {
-            log("=== YEAR-END PIPELINE HARDENING & AUDIT ===", "purple-400");
-            const maxTier = G.human.clusterTier === 3 ? 9 : (G.human.clusterTier === 2 ? 6 : 3);
-            G.human.pipelines.forEach(b => {
-                if (b.tier < maxTier) {
-                    b.tier++;
-                    log(`Hardened build "${b.name}" to Tier ${b.tier}.`, "emerald-400");
-                }
-            });
-
-            G.human.capital += G.human.residual;
-            G.ai.capital += G.ai.residual;
-
-            Object.keys(G.boardSlots).forEach(k => G.boardSlots[k] = null);
-            G.human.workers.forEach(w => w.available = true);
-            G.ai.workersLeft = 3;
-
-            G.year++;
-            if (G.year > 7 || G.human.arr >= 20 || G.ai.arr >= 20) {
-                const won = G.human.arr >= G.ai.arr;
-                alert(`Game Over! Final ARR — You: ${G.human.arr} | Rival AI: ${G.ai.arr}\n${won ? 'You secured Series-B market leadership!' : 'Rival captured market dominance.'}`);
-                initGame();
-                return;
-            }
-            startSpringPhase();
-        }
-
-        function auditShuffleDistribution() {
-            const modal = document.getElementById('modal-audit');
-            const view = document.getElementById('audit-results-view');
-            modal.classList.remove('hidden');
-            view.innerHTML = "Executing 10,000 deep Fisher-Yates draws with Crypto API...";
-
-            setTimeout(() => {
-                const iterations = 10000;
-                const counts = {};
-                MASTER_MODULES.forEach(m => counts[m.id] = 0);
-
-                const testDeck = {
-                    draw: secureShuffle(MASTER_MODULES),
-                    discard: []
-                };
-
-                for (let i = 0; i < iterations; i++) {
-                    if (testDeck.draw.length === 0) {
-                        testDeck.draw = secureShuffle(testDeck.discard);
-                        testDeck.discard = [];
-                    }
-                    const drawn = testDeck.draw.pop();
-                    counts[drawn.id]++;
-                    testDeck.discard.push(drawn);
-                }
-
-                const expected = iterations / MASTER_MODULES.length;
-                let rowsHtml = '';
-                let chiSquare = 0;
-
-                MASTER_MODULES.forEach(m => {
-                    const observed = counts[m.id];
-                    const diff = observed - expected;
-                    chiSquare += (diff * diff) / expected;
-                    const pct = ((observed / iterations) * 100).toFixed(2);
-                    rowsHtml += `
-                        <div class="flex justify-between py-0.5 border-b border-slate-800">
-                            <span class="text-slate-300 truncate">${m.name} (${m.id})</span>
-                            <span class="font-bold text-cyan-400">${observed} (${pct}%)</span>
-                        </div>
-                    `;
-                });
-
-                const isHealthy = chiSquare < 14.07;
-
-                view.innerHTML = `
-                    <div class="space-y-2">
-                        <div class="text-[11px] text-slate-400">Card Draw Frequencies across ${iterations.toLocaleString()} cycles:</div>
-                        <div class="bg-slate-950 p-2 rounded border border-slate-800 text-[10px] space-y-1">
-                            ${rowsHtml}
-                        </div>
-                        <div class="pt-1 text-slate-300 space-y-1">
-                            <div>• Chi-Square Stat: <span class="font-bold ${isHealthy ? 'text-emerald-400' : 'text-rose-400'}">${chiSquare.toFixed(2)}</span> (Threshold: 14.07)</div>
-                            <div>• Discard Recycling: <span class="text-emerald-400 font-bold">100% Operational</span></div>
-                            <div class="text-[11px] ${isHealthy ? 'text-emerald-400' : 'text-rose-400'}">
-                                ${isHealthy ? '✔ PASS: Uniform distribution confirmed.' : '⚠ FAIL: High variance.'}
-                            </div>
-                        </div>
-                    </div>
-                `;
-            }, 50);
-        }
-
-        function runMonteCarlo100() {
-            const modal = document.getElementById('modal-sim');
-            const view = document.getElementById('sim-results-view');
-            modal.classList.remove('hidden');
-            view.innerHTML = "Executing 100 fast-turn simulated game cycles...";
-
-            setTimeout(() => {
-                let hWins = 0, aWins = 0, ties = 0;
-                let totH = 0, totA = 0;
-
-                for (let g = 0; g < 100; g++) {
-                    let hArr = 0, aArr = 0, hCap = 4, hPipe = 1, r = 1;
-                    while (r <= 7 && hArr < 20 && aArr < 20) {
-                        hCap += 1;
-                        if (hCap >= 4 && hPipe < 3) { hCap -= 4; hPipe++; }
-                        else { hCap += 3; }
-
-                        aArr += (Math.random() > 0.45 ? 3 : 1);
-                        hArr += (Math.random() > 0.40 ? 3 : 1);
-                        r++;
-                    }
-                    totH += hArr; totA += aArr;
-                    if (hArr > aArr) hWins++;
-                    else if (aArr > hArr) aWins++;
-                    else ties++;
-                }
-
-                view.innerHTML = `
-                    <div class="space-y-2">
-                        <div class="text-emerald-400 font-bold">100 SIMULATIONS COMPLETE</div>
-                        <div class="grid grid-cols-3 gap-2 text-center">
-                            <div class="bg-slate-950 p-2 rounded border border-slate-800">
-                                <div class="text-[9px] text-slate-400">HUMAN WINS</div>
-                                <div class="text-sm font-bold text-cyan-400">${hWins}%</div>
-                            </div>
-                            <div class="bg-slate-950 p-2 rounded border border-slate-800">
-                                <div class="text-[9px] text-slate-400">RIVAL WINS</div>
-                                <div class="text-sm font-bold text-purple-400">${aWins}%</div>
-                            </div>
-                            <div class="bg-slate-950 p-2 rounded border border-slate-800">
-                                <div class="text-[9px] text-slate-400">DRAWS</div>
-                                <div class="text-sm font-bold text-slate-400">${ties}%</div>
-                            </div>
-                        </div>
-                        <div class="text-slate-300 text-[11px] space-y-1 pt-1">
-                            <div>• Average Human ARR: <span class="text-cyan-400 font-bold">${(totH/100).toFixed(1)}</span></div>
-                            <div>• Average Rival ARR: <span class="text-purple-400 font-bold">${(totA/100).toFixed(1)}</span></div>
-                            <div class="text-emerald-400">Balance check confirmed: Parity is preserved across all seasons.</div>
-                        </div>
-                    </div>
-                `;
-            }, 50);
-        }
-
-        function setMobileTab(tab) {
-            const sBoard = document.getElementById('section-board');
-            const sStatus = document.getElementById('section-status');
-            const sHand = document.getElementById('section-hand');
-
-            const btnBoard = document.getElementById('tab-btn-board');
-            const btnStatus = document.getElementById('tab-btn-status');
-            const btnHand = document.getElementById('tab-btn-hand');
-
-            [sBoard, sStatus, sHand].forEach(el => el.classList.add('hidden'));
-            [btnBoard, btnStatus, btnHand].forEach(b => {
-                b.className = "flex-1 py-2 text-center text-slate-400 border-b-2 border-transparent font-normal";
-            });
-
-            if (tab === 'board') {
-                sBoard.classList.remove('hidden');
-                btnBoard.className = "flex-1 py-2 text-center text-cyan-400 border-b-2 border-cyan-400 font-bold";
-            } else if (tab === 'status') {
-                sStatus.classList.remove('hidden');
-                btnStatus.className = "flex-1 py-2 text-center text-cyan-400 border-b-2 border-cyan-400 font-bold";
-            } else if (tab === 'hand') {
-                sHand.classList.remove('hidden');
-                btnHand.className = "flex-1 py-2 text-center text-cyan-400 border-b-2 border-cyan-400 font-bold";
-            }
+            item.textContent = `[Y${G.year} ${G.phase}] ${msg}`;
+            stream.appendChild(item);
+            stream.scrollTop = stream.scrollHeight;
         }
 
         function render() {
-            document.getElementById('hdr-year').textContent = G.year;
-            document.getElementById('hdr-season').textContent = G.season;
+            if (!G) return;
+            document.getElementById('ui-year').textContent = G.year;
+            document.getElementById('ui-phase').textContent = G.phase;
+
             document.getElementById('p-arr').textContent = G.human.arr;
             document.getElementById('p-cap').textContent = `$${G.human.capital}`;
             document.getElementById('p-res').textContent = `$${G.human.residual}`;
-            
+            document.getElementById('p-order-badge').textContent = `Slot: ${G.human.wakePosition || '-'}`;
+
             const availCount = G.human.workers.filter(w => w.available).length;
-            document.getElementById('p-workers-count').textContent = `${availCount} Available`;
-            document.getElementById('p-workers-pool').innerHTML = G.human.workers.map(w => `
+            document.getElementById('p-workers-count').textContent = `${availCount}/${G.human.workers.length} Ready`;
+            document.getElementById('p-workers-list').innerHTML = G.human.workers.map(w => `
                 <div class="px-2 py-0.5 rounded text-[10px] font-bold border ${w.available ? (w.type === 'ARCHITECT' ? 'bg-purple-950 text-purple-300 border-purple-800' : 'bg-cyan-950 text-cyan-300 border-cyan-800') : 'bg-slate-900 text-slate-600 border-slate-800 line-through'}">
-                    ${w.type === 'ARCHITECT' ? 'Lead Arch' : 'Dev'}
+                    ${w.type === 'ARCHITECT' ? 'Lead Architect' : 'Junior Dev'}
                 </div>
             `).join('');
 
-            document.getElementById('ai-arr-badge').textContent = `${G.ai.arr} ARR`;
+            document.getElementById('p-structures-list').innerHTML = G.human.structures.length 
+                ? G.human.structures.map(s => `<span class="bg-slate-950 border border-slate-800 px-2 py-1 rounded text-cyan-400">${s}</span>`).join(' ')
+                : '<span class="text-slate-500 italic">None yet</span>';
+
+            document.getElementById('ai-arr').textContent = `${G.ai.arr} ARR`;
             document.getElementById('ai-cap').textContent = `$${G.ai.capital}`;
-            document.getElementById('ai-res').textContent = `$${G.ai.residual}`;
-            document.getElementById('ai-workers-count').textContent = `${G.ai.workersLeft}/3`;
-            document.getElementById('ai-last-action').textContent = G.ai.lastAction;
+            document.getElementById('ai-order-badge').textContent = `Slot: ${G.ai.wakePosition || '-'}`;
+            const aiAvail = G.ai.workers.filter(w => w.available).length;
+            document.getElementById('ai-workers').textContent = `${aiAvail}/${G.ai.workers.length}`;
 
-            document.getElementById('deck-cnt-mod').textContent = `${G.decks.MODULE.draw.length} / ${G.decks.MODULE.discard.length}`;
-            document.getElementById('deck-cnt-sla').textContent = `${G.decks.SLA.draw.length} / ${G.decks.SLA.discard.length}`;
-            document.getElementById('deck-cnt-adv').textContent = `${G.decks.ADVISOR.draw.length} / ${G.decks.ADVISOR.discard.length}`;
-            document.getElementById('deck-cnt-pri').textContent = `${G.decks.PRINCIPAL.draw.length} / ${G.decks.PRINCIPAL.discard.length}`;
+            // Spring Track
+            const springTrack = document.getElementById('spring-track');
+            springTrack.innerHTML = SPRING_BENEFITS.map(b => {
+                const isHuman = G.human.wakePosition === b.pos;
+                const isAI = G.ai.wakePosition === b.pos;
+                let bg = "bg-slate-950 border-slate-800 hover:border-cyan-500";
+                let tag = "";
+                if (isHuman) { bg = "bg-cyan-950/80 border-cyan-500 text-cyan-300"; tag = "YOU"; }
+                if (isAI) { bg = "bg-purple-950/80 border-purple-500 text-purple-300"; tag = "COMPETITOR"; }
 
-            const slots = ['commit', 'fund', 'draw-summer', 'extract', 'compile', 'sla'];
+                return `
+                    <button onclick="selectSpringPosition(${b.pos})" class="p-1.5 sm:p-2 rounded-lg border ${bg} flex flex-col justify-between h-24 transition touch-target">
+                        <div class="font-bold text-slate-200 text-sm">${b.pos}</div>
+                        <div class="text-[9px] sm:text-[10px] text-slate-400 leading-tight">${b.label.split(': ')[1]}</div>
+                        <div class="text-[9px] font-bold text-cyan-400">${tag}</div>
+                    </button>
+                `;
+            }).join('');
+
+            // Action Slots Occupants
+            const slots = ['commit', 'fund', 'build', 'advisor', 'extract', 'compile', 'sla', 'principal'];
             slots.forEach(s => {
-                const key = s === 'draw-summer' ? 'drawSummer' : s;
-                const occ = G.boardSlots[key];
                 const el = document.getElementById(`occ-${s}`);
+                const occ = G.slots[s];
                 if (el) {
-                    if (occ === 'HUMAN') { el.textContent = "Occupied: You"; el.className = "text-[9px] sm:text-[10px] text-cyan-400"; }
-                    else if (occ === 'AI') { el.textContent = "Blocked: Rival"; el.className = "text-[9px] sm:text-[10px] text-purple-400"; }
-                    else { el.textContent = "Vacant"; el.className = "text-[9px] sm:text-[10px] text-slate-500"; }
+                    if (occ === 'HUMAN') { el.textContent = "Occupied by You"; el.className = "text-[10px] text-cyan-400 font-bold mt-1"; }
+                    else if (occ === 'AI') { el.textContent = "Blocked by Competitor"; el.className = "text-[10px] text-purple-400 font-bold mt-1"; }
+                    else { el.textContent = "Available"; el.className = "text-[10px] text-slate-500 mt-1"; }
                 }
             });
 
-            document.getElementById('repos-view').innerHTML = G.human.repos.map(r => `
-                <div class="bg-slate-900 p-1.5 rounded border border-slate-800 flex justify-between text-[10px] sm:text-[11px]">
+            // Git Repos
+            document.getElementById('repos-container').innerHTML = G.human.repos.map(r => `
+                <div class="bg-slate-900 p-2 rounded-lg border border-slate-800 flex justify-between items-center text-[11px]">
                     <span class="text-slate-400">${r.name}</span>
-                    <span class="${r.module ? 'text-emerald-400 font-bold' : 'text-slate-600 italic'}">${r.module ? r.module.name + ' (T' + r.module.val + ')' : 'Empty'}</span>
+                    <span class="${r.module ? 'text-emerald-400 font-bold' : 'text-slate-600 italic'}">${r.module ? r.module.name + ' (Lvl ' + r.module.val + ')' : 'Empty'}</span>
                 </div>
             `).join('');
 
-            document.getElementById('buffer-view').innerHTML = G.human.buffer.length ? G.human.buffer.map(b => `
-                <span class="bg-slate-900 border border-slate-800 text-cyan-400 px-1.5 py-0.5 rounded text-[9px]">${b.name} (T${b.val})</span>
-            `).join('') : '<span class="text-slate-600 italic text-[10px]">Buffer empty</span>';
+            // Memory Buffer
+            document.getElementById('buffer-container').innerHTML = G.human.buffer.length ? G.human.buffer.map(b => `
+                <span class="bg-slate-900 border border-slate-800 text-cyan-400 px-2 py-1 rounded text-[10px]">${b.name} (Lvl ${b.val})</span>
+            `).join('') : '<span class="text-slate-600 italic text-[10px]">Memory empty</span>';
 
+            // Live Builds
             const tierMax = G.human.clusterTier === 3 ? 9 : (G.human.clusterTier === 2 ? 6 : 3);
-            document.getElementById('tier-cap-label').textContent = `Max T${tierMax}`;
-            document.getElementById('pipelines-view').innerHTML = G.human.pipelines.length ? G.human.pipelines.map(p => `
-                <div class="bg-slate-900 p-1.5 rounded border border-slate-800 flex justify-between text-[10px] sm:text-[11px]">
-                    <span class="text-slate-300">${p.name}</span>
-                    <span class="text-emerald-400 font-bold">Tier ${p.tier}</span>
+            document.getElementById('tier-limit').textContent = `Max Level: ${tierMax}`;
+            document.getElementById('builds-container').innerHTML = G.human.pipelines.length ? G.human.pipelines.map(p => `
+                <div class="bg-slate-900 p-2 rounded-lg border border-slate-800 flex justify-between items-center text-[11px]">
+                    <span class="text-slate-300 truncate mr-1">${p.name}</span>
+                    <span class="text-emerald-400 font-bold whitespace-nowrap">Level ${p.tier}</span>
                 </div>
-            `).join('') : '<span class="text-slate-600 italic text-[10px]">No active releases</span>';
+            `).join('') : '<span class="text-slate-600 italic text-[10px]">No live systems</span>';
 
-            document.getElementById('hand-count-badge').textContent = `${G.human.hand.length} Cards`;
-            const tabHandCount = document.getElementById('tab-hand-count');
-            if (tabHandCount) tabHandCount.textContent = G.human.hand.length;
-
-            document.getElementById('hand-cards-list').innerHTML = G.human.hand.map(c => {
-                let border = "border-slate-800";
+            // Interactive Hand Cards List
+            document.getElementById('hand-count').textContent = `${G.human.hand.length} Cards`;
+            document.getElementById('hand-container').innerHTML = G.human.hand.map(c => {
+                let border = "border-slate-800 hover:border-slate-600";
                 let badge = "text-slate-400";
-                if (c.type === 'MODULE') { border = "border-emerald-900/60"; badge = "text-emerald-400"; }
-                if (c.type === 'SLA') { border = "border-purple-900/60"; badge = "text-purple-400"; }
-                if (c.type === 'ADVISOR') { border = "border-amber-900/60"; badge = "text-amber-400"; }
-                if (c.type === 'PRINCIPAL') { border = "border-blue-900/60"; badge = "text-blue-400"; }
-
-                const isPlayable = (c.type === 'ADVISOR' && G.season === 'SUMMER') || (c.type === 'PRINCIPAL' && G.season === 'WINTER');
+                let category = "CODE COMPONENT";
+                if (c.type === 'MODULE') { border = "border-emerald-900/60 hover:border-emerald-500"; badge = "text-emerald-400"; category = "CODE COMPONENT"; }
+                if (c.type === 'SLA') { border = "border-purple-900/60 hover:border-purple-500"; badge = "text-purple-400"; category = "CLIENT CONTRACT"; }
+                if (c.type === 'ADVISOR') { border = "border-amber-900/60 hover:border-amber-500"; badge = "text-amber-400"; category = "ADVISOR CARD"; }
+                if (c.type === 'PRINCIPAL') { border = "border-blue-900/60 hover:border-blue-500"; badge = "text-blue-400"; category = "SENIOR ARCHITECT"; }
 
                 return `
-                    <div class="bg-slate-950 p-2 sm:p-2.5 rounded-lg border ${border} text-xs font-mono space-y-1">
+                    <div onclick="inspectCard('${c.id}')" class="card-tile bg-slate-950 p-3 rounded-xl border ${border} text-xs font-mono space-y-1.5 cursor-pointer shadow-sm relative overflow-hidden group">
                         <div class="flex justify-between items-center">
-                            <span class="${badge} font-bold text-[9px] sm:text-[10px]">${c.type}</span>
-                            ${isPlayable ? `<button onclick="playHandCard('${c.id}')" class="bg-slate-800 hover:bg-slate-700 text-slate-200 px-2 py-0.5 rounded text-[9px] border border-slate-700 touch-target">Play Card</button>` : ''}
+                            <span class="${badge} font-bold text-[10px]">${category}</span>
+                            <span class="text-[10px] text-slate-500">${c.sub || ''}</span>
                         </div>
-                        <div class="font-bold text-slate-200 text-[11px] truncate">${c.name || c.title}</div>
-                        <div class="text-[9px] sm:text-[10px] text-slate-400 leading-tight">${c.desc || `Req: ${c.reqType} ≥ T${c.minTier} | +${c.arr} ARR`}</div>
+                        <div class="font-bold text-slate-200 text-sm truncate pr-4">${c.name || c.title}</div>
+                        <div class="text-[11px] text-slate-400 font-sans leading-tight line-clamp-2">${c.desc || `Demands: ${c.reqType} at Level ${c.minTier}+`}</div>
+                        <div class="absolute bottom-2 right-2 opacity-0 group-hover:opacity-100 transition text-[10px] text-slate-300 bg-slate-800 px-1.5 py-0.5 rounded">Inspect ↗</div>
                     </div>
                 `;
             }).join('');
         }
-
-        window.onload = () => {
-            initGame();
-        };
     </script>
 </body>
 </html>
